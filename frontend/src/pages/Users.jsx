@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from "axios";
-import Navbar from "../../components/Navbar";
-import Sidebar from "../../components/Sidebar";
 import { Link } from "react-router-dom";
-import { useTheme } from "../../components/ThemeContext";
-import DeleteConfirmation from "../../components/DeleteConfirmation";
+import { useTheme } from "../components/ThemeContext";
+import DeleteConfirmation from "../components/DeleteConfirmation";
 
 import { saveAs } from 'file-saver';
-import useAuthCheck from "../../hook/useAuthCheck";
 
 const User = ({ setActiveComponent }) => {
   const { theme } = useTheme();
@@ -24,8 +21,6 @@ const User = ({ setActiveComponent }) => {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [itemNameToDelete, setItemNameToDelete] = useState("");
   const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
-  const { isChecking, isAuthenticated, user } = useAuthCheck();
-
     const navigate = useNavigate();
   
 
@@ -63,8 +58,7 @@ const User = ({ setActiveComponent }) => {
   };
 
 
-  const isOwner = user?.dashboardRole === 'Owner';
-
+  
   
   
 
@@ -162,18 +156,39 @@ const User = ({ setActiveComponent }) => {
   };
 
     // Export functions
+ 
 
+    const exportToCSV = () => {
+      if (userList.length === 0) return;
     
-
+      const filteredUserList = userList.map(({ password, profileImage, __v, roleId, ...rest }) => ({
+        ...rest,
+        role: roleId?.name || "No Role Assigned"
+      }));
+    
+      // Create CSV headers
+      const headers = Object.keys(filteredUserList[0]).join(',');
+    
+      // Create CSV rows
+      const rows = filteredUserList.map(obj => 
+        Object.values(obj)
+          .map(value => `"${value?.toString().replace(/"/g, '""') || ''}"`)
+          .join(',')
+      );
+    
+      // Combine and create file
+      const csvContent = [headers, ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      saveAs(blob, "users.csv");
+      setShowDownloadDropdown(false);
+    };
     
     const exportToJSON = () => {
       if (userList.length === 0) return;
     
-      const filteredUserList = userList.map(({ password, profileImage, dashboardRoleId, __v, roleId, countryId, cityId, ...rest }) => ({
+      const filteredUserList = userList.map(({ password, profileImage , __v , roleId, ...rest }) => ({
         ...rest,
-        role: roleId && roleId.name ? roleId.name : "No Role Assigned",
-        country: countryId && countryId.name ? countryId.name : "No Country",
-        city: cityId && cityId.name ? cityId.name : "No City"
+        role: roleId && roleId.name ? roleId.name : "No Role Assigned"
       }));
     
       const jsonContent = JSON.stringify(filteredUserList, null, 2);
@@ -220,19 +235,23 @@ const User = ({ setActiveComponent }) => {
                       </button>
                       
                       {showDownloadDropdown && (
-                        <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-10 ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}>
-                          <div className="py-1">
-                           
-                        
-                            <button
-                              onClick={exportToJSON}
-                              className={`block w-full text-left px-4 py-2 text-sm ${theme === 'dark' ? 'text-white hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'}`}
-                            >
-                              JSON
-                            </button>
-                          </div>
-                        </div>
-                      )}
+  <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-10 ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}>
+    <div className="py-1">
+      <button
+        onClick={exportToCSV}
+        className={`block w-full text-left px-4 py-2 text-sm ${theme === 'dark' ? 'text-white hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'}`}
+      >
+        CSV (Excel)
+      </button>
+      <button
+        onClick={exportToJSON}
+        className={`block w-full text-left px-4 py-2 text-sm ${theme === 'dark' ? 'text-white hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'}`}
+      >
+        JSON
+      </button>
+    </div>
+  </div>
+)}
                     </div>
                   </form>
 
@@ -447,24 +466,14 @@ const User = ({ setActiveComponent }) => {
                         Edit
                       </button>
 
-                      {isOwner ? (
-        <button
-          onClick={() => handleDeleteClick(item.mysqlId || item.id, item.name)}
-          className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-lg"
-        >
-          Delete
-        </button>
-      ) : (
-        <button
-          disabled
-          className="bg-red-300 text-white py-2 px-4 rounded-lg text-lg cursor-not-allowed"
-          title="Only Owners can delete users"
-        >
-          Delete
-        </button>
-      )}
-    </>
-  )}
+                                <button
+                                  onClick={() => handleDeleteClick(item.mysqlId || item.id, item.name)}
+                                  className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg text-lg"
+                                >
+                                  Delete
+                                </button>
+                              </>
+                            )}
                           </td>
                         </tr>
                       ))

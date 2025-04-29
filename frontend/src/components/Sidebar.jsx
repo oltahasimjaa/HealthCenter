@@ -6,7 +6,7 @@ import axios from 'axios';
 import { 
   LayoutDashboard, 
   Calendar,  UserCircle2,  CheckSquare,  FileText,   Table,  FileInput,  MessageCircle,
-    Mail, Menu,  ChevronDown,LogOut, ListCheck,Clipboard, Antenna,
+    Mail, Menu,  ChevronDown,  Github, Trello,LogOut, ListCheck,Clipboard, Antenna,
   Users, Layers, Shield, CalendarClock, GraduationCap, ListOrdered, Package, Tags,
   ClipboardList, UserPlus, ShoppingCart,Star
 
@@ -30,6 +30,10 @@ const Sidebar = () => {
    const isOwner = user?.dashboardRole === 'Owner';
   // const isAdmin = user?.dashboardRole === 'Admin';
   const isSpecialist = ['Nutricionist', 'Fizioterapeut', 'Trajner', 'Psikolog'].includes(user?.role);
+  // const isClient = user?.role === 'Client' && user?.dashboardRole === 'User';
+
+  
+  //  const AdminSpecialist = isAdmin || (isAdmin && isSpecialist);
 
 
 
@@ -40,7 +44,7 @@ const Sidebar = () => {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/logout', {}, { withCredentials: true });
+      const response = await axios.post('http://localhost:5001/logout', {}, { withCredentials: true });
       if (response.status === 200) {
         navigate('/login');
       }
@@ -84,7 +88,7 @@ const Sidebar = () => {
     <div className={`${isOpen ? 'w-72' : 'w-20'} bg-white dark:bg-gray-900 dark:text-white border-r h-screen overflow-auto transition-all duration-300 shadow-md flex flex-col justify-between`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       <div>
         <div className="px-4 py-4 border-b flex items-center justify-between">
-          {isOpen && <span className="text-xl font-semibold">Health Center</span>}
+          {isOpen && <span className="text-xl font-semibold">Wellness</span>}
           <button onClick={toggleSidebar} className="hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded-md">
             <Menu className="w-6 h-6" />
           </button>
@@ -101,6 +105,12 @@ const Sidebar = () => {
 {(isSpecialist || isOwner) && (
         
     <div className="mb-1">
+         
+            {}
+        
+
+        
+
 
           {/* Manage Users Dropdown */}
           {(isOwner || isSpecialist) && (
@@ -130,6 +140,10 @@ const Sidebar = () => {
               </div>
             )}
          
+         
+
+
+
 
           <div className="mb-1">
             <MenuItem 
@@ -158,23 +172,61 @@ const Sidebar = () => {
           </div>
  </div>
 )}
-          
-</div> )}     
+      
+
+
+          {/* Manage Orders Dropdown */}
+
+
+
+         {/* <MenuItem 
+            icon={ClipboardList} 
+            label="Order" 
+            componentName="order"
+          /> */}
+        
+
+</div> )} 
+
+
+
+
+           
           <MenuItem 
             icon={UserCircle2} 
             label="Profile" 
             componentName="profile"
           />
+
+          
+
+        
+
            <MenuItem 
             icon={MessageCircle} 
             label="Chat" 
             componentName="chat"
           />
+          {/* shopping cart*/}
+       
+          
         </div>
+
+
         <div className="py-2 border-t bg-white dark:bg-gray-900 dark:text-white">
           {isOpen && <div className="text-sm text-gray-400 px-4 py-2">SUPPORT</div>}
-       
-     
+          <MenuItem 
+            icon={Github} 
+            label="Repository" 
+            externalLink={true}
+            onClick={() => window.open("https://github.com/oltahasimjaa/HealthCenter", "_blank", "noopener,noreferrer")}
+          />
+          <MenuItem 
+            icon={Trello} 
+            label="Trello" 
+            externalLink={true}
+            onClick={() => window.open("_blank", "noopener,noreferrer")}
+          />
         </div>
       </div>
 
