@@ -12,33 +12,26 @@ const cookieParser = require('cookie-parser');
 const fs = require('fs');
 const path = require('path');
 const sequelize = require('./config/database');
-const trainingRoutes = require('./routes/TrainingRoutes');
 const isAuthenticated = require('./middlewares/authMiddleware').isAuthenticated;
 
 const mongoose = require('mongoose')
-const User = require('./infrastructure/database/models/User');
-const Country = require('./infrastructure/database/models/Country');
-const City = require('./infrastructure/database/models/City');
-const ProfileImage = require('./infrastructure/database/models/ProfileImage');
+const { User, Country, City, ProfileImage, Role, DashboardRole } = require('./infrastructure/database/models/index');
+const { UserMongo, CountryMongo, CityMongo, ProfileImageMongo, RoleMongo, DashboardRoleMongo } = require('./infrastructure/database/models/indexMongo');
 
 
 
 
-
-//
 
 const app = express();
 
-// TrainingRoutes
-app.use('/api/trainings', trainingRoutes);
 
 // Middleware setup
 app.use(cookieParser());
 app.use(cors({
-  origin: ["http://localhost:3000", "http://192.168.0.109:3000"],
-  credentials: true, 
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], 
-    allowedHeaders: ['Content-Type', 'Authorization'] 
+  origin: ["http://localhost:3001", " http://192.168.0.114:3001"],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.options('*', cors());
@@ -54,10 +47,10 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict', // Parandalon sulmet CSRF
-      maxAge: 24 * 60 * 60 * 1000, // 24 orë
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict', // Parandalon sulmet CSRF
+    maxAge: 24 * 60 * 60 * 1000, // 24 orë
   },
 }));
 
@@ -76,41 +69,39 @@ fs.readdirSync(routesPath).forEach((file) => {
 app.use(flash());
 
 passport.use(new LocalStrategy(async (username, password, done) => {
-    try {
-      const user = await User.findOne({ where: { username } });
-      if (!user) {
-        return done(null, false, { message: 'Përdoruesi nuk u gjet.' });
-      }
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return done(null, false, { message: 'Fjalëkalimi është i gabuar.' });
-      }
-      return done(null, user);
-    } catch (err) {
-      return done(err);
+  try {
+    const user = await User.findOne({ where: { username } });
+    if (!user) {
+      return done(null, false, { message: 'Përdoruesi nuk u gjet.' });
     }
-  }));
-  
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return done(null, false, { message: 'Fjalëkalimi është i gabuar.' });
+    }
+    return done(null, user);
+  } catch (err) {
+    return done(err);
+  }
+}));
+
 passport.serializeUser((user, done) => {
-    done(null, user.id);
+  done(null, user.id);
 });
 
 passport.deserializeUser(async (id, done) => {
-    try {
-      const user = await User.findByPk(id);
-      done(null, user);
-    } catch (err) {
-      done(err);
-    }
+  try {
+    const user = await User.findByPk(id);
+    done(null, user);
+  } catch (err) {
+    done(err);
+  }
 });
-  
+
 app.use(passport.initialize());
 app.use(passport.session());
 
-const Role = require('./infrastructure/database/models/Role');
-const RoleMongo = require('./infrastructure/database/models/RoleMongo');
-const DashboardRole = require('./infrastructure/database/models/DashboardRole');
-const DashboardRoleMongo = require('./infrastructure/database/models/DashboardRoleMongo');
+// const { RoleMongo, DashboardRoleMongo } = require('./infrastructure/database/models')
+
 
 
 
@@ -119,15 +110,15 @@ app.get('/user', isAuthenticated, async (req, res) => {
     const user = await User.findByPk(req.user.id, {
       include: [
         { model: Role },
-        { 
+        {
           model: DashboardRole,
-          attributes: ['id', 'name'] 
+          attributes: ['id', 'name']
         },
-        { 
+        {
           model: Country,
           attributes: ['id', 'name']
         },
-        { 
+        {
           model: City,
           attributes: ['id', 'name'],
           include: [{
@@ -141,12 +132,12 @@ app.get('/user', isAuthenticated, async (req, res) => {
         }
       ]
     });
-    
+
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
-    res.json({ 
+
+    res.json({
       user: {
         id: user.id,
         name: user.name,
@@ -174,41 +165,64 @@ app.get('/user', isAuthenticated, async (req, res) => {
 });
 
 
+
+
 const createDefaultRolesAndOwner = async () => {
   try {
     await sequelize.sync();
 
-    // 1. Krijo rolet (si më parë)
+    // 1. Krijo rolet
     const roles = ['Client', 'Fizioterapeut', 'Nutricionist', 'Trajner', 'Psikolog'];
     for (let roleName of roles) {
-      const [role, created] = await Role.findOrCreate({ where: { name: roleName } });
+      const [role, created] = await Role.findOrCreate({ 
+        where: { name: roleName } 
+      });
       if (created) {
         await RoleMongo.create({ mysqlId: role.id.toString(), name: roleName });
         console.log(`Roli '${roleName}' u krijua në MySQL & MongoDB.`);
       }
     }
 
-    // 2. Krijo rolet e Dashboard (Admin, Owner)
+    const clientRole = await Role.findOne({ where: { name: 'Client' } });
+    if (!clientRole) {
+      throw new Error('Client role nuk ekziston në MySQL!');
+    }
+
+    const clientRoleMongo = await RoleMongo.findOne({ name: 'Client' });
+    if (!clientRoleMongo) {
+      throw new Error('Client role nuk ekziston në MongoDB!');
+    }
+
+    // 2. Krijo rolet e Dashboard
     const dashboardRoles = ['Owner'];
     for (let roleName of dashboardRoles) {
-      const [dashboardRole, created] = await DashboardRole.findOrCreate({ where: { name: roleName } });
+      const [dashboardRole, created] = await DashboardRole.findOrCreate({ 
+        where: { name: roleName } 
+      });
       if (created) {
-        await DashboardRoleMongo.create({ mysqlId: dashboardRole.id.toString(), name: roleName });
+        await DashboardRoleMongo.create({ 
+          mysqlId: dashboardRole.id.toString(), 
+          name: roleName 
+        });
         console.log(`Roli i Dashboard '${roleName}' u krijua në MySQL & MongoDB.`);
       }
     }
 
-    const ownerDashboardRole = await DashboardRole.findOne({ where: { name: 'Owner' } });
+    const ownerDashboardRole = await DashboardRole.findOne({ 
+      where: { name: 'Owner' } 
+    });
     if (!ownerDashboardRole) {
       throw new Error('Owner role nuk ekziston!');
     }
 
-    const existingOwner = await User.findOne({ where: { email: 'owner@gmail.com' } });
-    
-    if (!existingOwner) {
-      const randomPassword = 'owner'; 
-      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+    // 3. Krijo përdoruesin Owner
+    const existingOwner = await User.findOne({ 
+      where: { email: 'owner@gmail.com' } 
+    });
 
+    if (!existingOwner) {
+      const randomPassword = 'owner';
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
       const newOwner = await User.create({
         username: 'owner',
@@ -217,10 +231,8 @@ const createDefaultRolesAndOwner = async () => {
         dashboardRoleId: ownerDashboardRole.id,
         name: 'owner',
         lastName: 'Account',
-        roleId: 1, 
+        roleId: clientRole.id,
         number: '123456789'
-        // countryId: 1,
-        // cityId: 1,
       });
 
       await UserMongo.create({
@@ -231,19 +243,17 @@ const createDefaultRolesAndOwner = async () => {
         name: 'Owner',
         password: hashedPassword,
         lastName: 'Account',
-        number: '123456789'
-        // countryId: '1',
-        // cityId: '1',
-        // roleId: '1',
-
+        number: '123456789',
+        roleId: clientRoleMongo._id
       });
 
-      // console.log('Owner user u krijua me sukses në të dyja databazat!');
+      console.log('Owner user u krijua me sukses në të dyja databazat!');
     } else {
-      // console.log('Owner user ekziston tashmë në MySQL.');
-      
-      // Kontrollo nëse ekziston në MongoDB (nëse jo, krijoje)
-      const existingOwnerMongo = await UserMongo.findOne({ mysqlId: existingOwner.id.toString() });
+      console.log('Owner user ekziston tashmë në MySQL.');
+
+      const existingOwnerMongo = await UserMongo.findOne({ 
+        mysqlId: existingOwner.id.toString() 
+      });
       if (!existingOwnerMongo) {
         await UserMongo.create({
           mysqlId: existingOwner.id.toString(),
@@ -253,7 +263,7 @@ const createDefaultRolesAndOwner = async () => {
           name: 'Owner',
           lastName: 'Account'
         });
-        // console.log('Owner user u shtua në MongoDB (ekzistonte vetëm në MySQL).');
+        console.log('Owner user u shtua në MongoDB (ekzistonte vetëm në MySQL).');
       }
     }
   } catch (err) {
@@ -261,14 +271,12 @@ const createDefaultRolesAndOwner = async () => {
   }
 };
 
+
 createDefaultRolesAndOwner();
 
 
-const UserMongo = require('./infrastructure/database/models/UserMongo');
-const CountryMongo = require('./infrastructure/database/models/CountryMongo');
-const CityMongo = require('./infrastructure/database/models/CityMongo');
-const ProfileImageMongo = require('./infrastructure/database/models/ProfileImageMongo');
-// const RoleMongo = require('./infrastructure/database/models/RoleMongo');
+
+// const RoleMongo = require('./infrastructure/database/models/Mongo/RoleMongo');
 
 // app.get('/user', isAuthenticated, async (req, res) => {
 //   try {
@@ -312,9 +320,9 @@ const ProfileImageMongo = require('./infrastructure/database/models/ProfileImage
 
 
 app.get('/', (req, res) => {
-    res.json('user');
+  res.json('user');
 });
-  
+
 
 app.post('/refresh', (req, res) => {
   const refreshToken = req.cookies['refreshToken'];
@@ -374,9 +382,9 @@ app.use(passport.session());
 
 
 
-const PORT = 5000;
+const PORT = 5001;
 
 sequelize.sync().then(() => {
-//    console.log('Database synced successfully');
-    app.listen(PORT, () => console.log(`Server: ${PORT} OK`))
+  //    console.log('Database synced successfully');
+  app.listen(PORT, () => console.log(`Server: ${PORT} OK`))
 }).catch((err) => console.log(err));
