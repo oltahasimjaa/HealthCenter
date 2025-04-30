@@ -12,7 +12,7 @@ const useAuthCheck = () => {
   useEffect(() => {
     const checkLoginStatus = async () => {
       try {
-        const response = await axios.get("http://localhost:5000/user", { withCredentials: true });
+        const response = await axios.get("http://localhost:5001/user", { withCredentials: true });
         if (response.data.user) {
           setIsAuthenticated(true);
           setUser(response.data.user);

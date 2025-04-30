@@ -69,9 +69,8 @@ const createUser = async (req, res) => {
   try {
     console.log(req.body);
 
-    // const randomPassword = crypto.randomBytes(8).toString('hex'); // 16 karaktere
+ const randomPassword = crypto.randomBytes(8).toString('hex'); // 16 karaktere
 
-     const randomPassword = 'bani1234'; // 16 karaktere
 
     
     const hashedPassword = await bcrypt.hash(randomPassword, 10);
@@ -87,14 +86,14 @@ const createUser = async (req, res) => {
       \nYour password is: ${randomPassword}\n\nPlease change it after login.\n\nThank you!`
     };
     
-    // Dergo emailin
-    // transporter.sendMail(mailOptions, (error, info) => {
-    //   if (error) {
-    //     console.error('Error sending email:', error);
-    //   } else {
-    //     console.log('Email sent: ' + info.response);
-    //   }
-    // });
+  
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending email:', error);
+      } else {
+        console.log('Email sent: ' + info.response);
+      }
+    });
 
     res.status(201).json(newUser);
     

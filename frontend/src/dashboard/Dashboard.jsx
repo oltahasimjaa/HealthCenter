@@ -4,16 +4,19 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from "../components/Sidebar";
 import Navbar from '../components/Navbar';
 import useAuthCheck from '../hook/useAuthCheck';
- // Import the new component
+import AccessDenied from './AccessDenied'; 
+
 
 // Import all components
 
 import User from './Users/User';
 import Profile from './Profile';
+
 import CreateUser from './Users/CreateUser';
 import EditUser from './Users/EditUser';
 import Role from './Roles/Role';
 import DashboardRole from './Roles/DashboardRole';
+
 
 function Dashboard() {
   axios.defaults.withCredentials = true;
@@ -37,7 +40,9 @@ function Dashboard() {
   const componentConfig = {
     // Public components (available to all authenticated users)
     profile: { component: <Profile />, access: true },
-    
+
+  
+
     
     // Owner only components
     users: { component: <User navigate={navigate} />, access: isSpecialist || isOwner },
@@ -47,7 +52,7 @@ function Dashboard() {
     dashboardrole: { component: <DashboardRole />, access: isOwner },
     
     // Admin, Specialist, or Owner components
-   
+  
     // Default component
     '': { component: <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>, access: true },
     null: { component: <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>, access: true },
@@ -80,14 +85,16 @@ function Dashboard() {
 
   useEffect(() => {
     let isMounted = true;
-
+  
     if (isMounted) {
       const config = componentConfig[activeComponent];
-      if (config && !config.access) {
+      if (!config) {
+        setActiveComponent('notfound');
+      } else if (config && !config.access) {
         navigate('/dashboard');
       }
     }
-
+  
     return () => {
       isMounted = false;
     };
@@ -109,7 +116,7 @@ function Dashboard() {
     const config = componentConfig[activeComponent];
     
     if (config) {
-   //   return config.access ? config.component : <AccessDenied />;
+      return config.access ? config.component : <AccessDenied />;
     }
     
     return <h1 className="text-2xl font-bold">Komponenti nuk u gjet</h1>;
