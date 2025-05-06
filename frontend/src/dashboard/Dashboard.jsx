@@ -5,7 +5,7 @@ import Sidebar from "../components/Sidebar";
 import Navbar from '../components/Navbar';
 import useAuthCheck from '../hook/useAuthCheck';
 import AccessDenied from './AccessDenied'; 
-
+import Program from './Program';
 
 // Import all components
 
@@ -45,6 +45,7 @@ function Dashboard() {
 
     
     // Owner only components
+    program: { component: <Program />, access: isSpecialist || isOwner },
     users: { component: <User navigate={navigate} />, access: isSpecialist || isOwner },
     createuser: { component: <CreateUser navigate={navigate} />, access: isSpecialist || isOwner },
     edituser: { component: <EditUser navigate={navigate} />, access: isSpecialist || isOwner },
