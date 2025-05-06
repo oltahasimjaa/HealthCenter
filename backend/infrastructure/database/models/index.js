@@ -9,6 +9,7 @@ const DashboardRole = require('./MySQL/DashboardRole');
 const User = require('./MySQL/User');
 const Program = require('./MySQL/Program');
 const UserPrograms = require('./MySQL/UserPrograms');
+const List = require('./MySQL/List');
 
 
 // Initialize models - try to handle different patterns safely
@@ -39,6 +40,7 @@ const DashboardRoleModel = initializeModel(DashboardRole, sequelize);
 const UserModel = initializeModel(User, sequelize);
 const ProgramModel = initializeModel(Program, sequelize);
 const UserProgramsModel = initializeModel(UserPrograms, sequelize);
+const ListModel = initializeModel(List, sequelize);
 
 
 
@@ -62,6 +64,9 @@ UserModel.belongsTo(ProfileImageModel, { foreignKey: 'profileImageId' });
 UserModel.belongsToMany(ProgramModel, { through: UserProgramsModel, foreignKey: 'userId' });
 ProgramModel.belongsToMany(UserModel, { through: UserProgramsModel, foreignKey: 'programId' });
 
+UserModel.hasMany(ListModel, { foreignKey: 'createdById' });
+ListModel.belongsTo(UserModel, { foreignKey: 'createdById' });
+
 module.exports = {
   sequelize,
   Role: RoleModel,
@@ -72,4 +77,5 @@ module.exports = {
   DashboardRole: DashboardRoleModel,
   User: UserModel,
   UserPrograms: UserProgramsModel,
+  List: ListModel,
 };

@@ -6,6 +6,7 @@ const CityMongo = require('./Mongo/CityMongo');
 const ProfileImageMongo = require('./Mongo/ProfileImageMongo');
 const UserProgramsMongo = require('./Mongo/UserProgramsMongo');
 const ProgramMongo = require('./Mongo/ProgramMongo');
+const ListMongo = require('./Mongo/ListMongo');
 
 
 module.exports = {
@@ -16,5 +17,6 @@ module.exports = {
   DashboardRoleMongo,
   CityMongo,
   ProfileImageMongo,
+  ListMongo,
   RoleMongo
 };
