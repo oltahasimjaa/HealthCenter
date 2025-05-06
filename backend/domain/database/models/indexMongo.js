@@ -7,7 +7,7 @@ const ProfileImageMongo = require('./Mongo/ProfileImageMongo');
 const UserProgramsMongo = require('./Mongo/UserProgramsMongo');
 const ProgramMongo = require('./Mongo/ProgramMongo');
 const ListMongo = require('./Mongo/ListMongo');
-
+const CardMongo = require('./Mongo/CardMongo');
 
 module.exports = {
   UserMongo,
@@ -18,5 +18,6 @@ module.exports = {
   CityMongo,
   ProfileImageMongo,
   ListMongo,
-  RoleMongo
+  RoleMongo,
+  CardMongo
 };

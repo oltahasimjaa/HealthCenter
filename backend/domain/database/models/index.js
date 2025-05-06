@@ -10,7 +10,7 @@ const User = require('./MySQL/User');
 const Program = require('./MySQL/Program');
 const UserPrograms = require('./MySQL/UserPrograms');
 const List = require('./MySQL/List');
-
+const CardModel = initializeModel(Card, sequelize);
 
 // Initialize models - try to handle different patterns safely
 function initializeModel(model, seq) {
@@ -66,6 +66,9 @@ ProgramModel.belongsToMany(UserModel, { through: UserProgramsModel, foreignKey: 
 
 UserModel.hasMany(ListModel, { foreignKey: 'createdById' });
 ListModel.belongsTo(UserModel, { foreignKey: 'createdById' });
+// List and Card relationships
+ListModel.hasMany(CardModel, { foreignKey: 'listId', onDelete: 'CASCADE' });
+CardModel.belongsTo(ListModel, { foreignKey: 'listId' });
 
 module.exports = {
   sequelize,
