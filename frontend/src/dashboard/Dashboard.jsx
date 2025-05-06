@@ -11,7 +11,7 @@ import Program from './Program';
 
 import User from './Users/User';
 import Profile from './Profile';
-
+import UserPrograms from './UserPrograms';
 import CreateUser from './Users/CreateUser';
 import EditUser from './Users/EditUser';
 import Role from './Roles/Role';
@@ -45,7 +45,8 @@ function Dashboard() {
 
     
     // Owner only components
-    program: { component: <Program />, access: isSpecialist || isOwner },
+   
+    
     users: { component: <User navigate={navigate} />, access: isSpecialist || isOwner },
     createuser: { component: <CreateUser navigate={navigate} />, access: isSpecialist || isOwner },
     edituser: { component: <EditUser navigate={navigate} />, access: isSpecialist || isOwner },
@@ -53,6 +54,8 @@ function Dashboard() {
     dashboardrole: { component: <DashboardRole />, access: isOwner },
     
     // Admin, Specialist, or Owner components
+    userprograms: { component: <UserPrograms />, access: isSpecialist || isOwner },
+    program: { component: <Program />, access: isSpecialist || isOwner },
   
     // Default component
     '': { component: <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>, access: true },

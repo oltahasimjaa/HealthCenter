@@ -8,6 +8,7 @@ import Dashboard from './dashboard/Dashboard';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import Program from './dashboard/Program';
+import UserProgram from './dashboard/UserPrograms';
 
 const AppRoutes = () => {
   const { darkMode } = useTheme();
@@ -33,6 +34,7 @@ const AppRoutes = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/programs" element={<Program />} />
+        <Route path="/userprograms" element={<UserProgram />} />
       </Routes>
     </Router>
   );

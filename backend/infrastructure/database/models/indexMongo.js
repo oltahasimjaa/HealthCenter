@@ -4,12 +4,14 @@ const DashboardRoleMongo = require('./Mongo/DashboardRoleMongo');
 const CountryMongo = require('./Mongo/CountryMongo');
 const CityMongo = require('./Mongo/CityMongo');
 const ProfileImageMongo = require('./Mongo/ProfileImageMongo');
-
-
+const UserProgramsMongo = require('./Mongo/UserProgramsMongo');
+const ProgramMongo = require('./Mongo/ProgramMongo');
 
 
 module.exports = {
   UserMongo,
+  ProgramMongo,
+  UserProgramsMongo,
   CountryMongo,
   DashboardRoleMongo,
   CityMongo,
