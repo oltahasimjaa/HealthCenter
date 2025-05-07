@@ -10,8 +10,8 @@ const User = require('./MySQL/User');
 const Program = require('./MySQL/Program');
 const UserPrograms = require('./MySQL/UserPrograms');
 const List = require('./MySQL/List');
-const CardModel = initializeModel(Card, sequelize);
-
+const Card = require('./MySQL/Card');
+const CardMember = require('./MySQL/CardMember');
 // Initialize models - try to handle different patterns safely
 function initializeModel(model, seq) {
   if (typeof model === 'function') {
@@ -41,8 +41,8 @@ const UserModel = initializeModel(User, sequelize);
 const ProgramModel = initializeModel(Program, sequelize);
 const UserProgramsModel = initializeModel(UserPrograms, sequelize);
 const ListModel = initializeModel(List, sequelize);
-
-
+const CardMemberModel = initializeModel(CardMember, sequelize);
+const CardModel = initializeModel(Card, sequelize);
 
 
 // User relationships
@@ -61,15 +61,26 @@ UserModel.belongsTo(CityModel, { foreignKey: 'cityId' });
 ProfileImageModel.hasMany(UserModel, { foreignKey: 'profileImageId' });
 UserModel.belongsTo(ProfileImageModel, { foreignKey: 'profileImageId' });
 
+
+// Program relationships
+UserModel.hasMany(ProgramModel, { foreignKey: 'createdById' });
+ProgramModel.belongsTo(UserModel, { foreignKey: 'createdById' });
+
 UserModel.belongsToMany(ProgramModel, { through: UserProgramsModel, foreignKey: 'userId' });
 ProgramModel.belongsToMany(UserModel, { through: UserProgramsModel, foreignKey: 'programId' });
 
-UserModel.hasMany(ListModel, { foreignKey: 'createdById' });
-ListModel.belongsTo(UserModel, { foreignKey: 'createdById' });
 // List and Card relationships
 ListModel.hasMany(CardModel, { foreignKey: 'listId', onDelete: 'CASCADE' });
 CardModel.belongsTo(ListModel, { foreignKey: 'listId' });
 
+UserModel.hasMany(CardModel, { foreignKey: 'createdById', onDelete: 'CASCADE' });
+CardModel.belongsTo(UserModel, { foreignKey: 'createdById' });
+
+UserModel.belongsToMany(CardModel, { through: CardMemberModel, foreignKey: 'userId' });
+CardModel.belongsToMany(UserModel, { through: CardMemberModel, foreignKey: 'cardId' });
+
+ProgramModel.hasMany(ListModel, { foreignKey: 'programId' });
+ListModel.belongsTo(ProgramModel, { foreignKey: 'programId' });
 module.exports = {
   sequelize,
   Role: RoleModel,
@@ -81,4 +92,6 @@ module.exports = {
   User: UserModel,
   UserPrograms: UserProgramsModel,
   List: ListModel,
+  Card: CardModel,
+  CardMember: CardMemberModel
 };

@@ -8,7 +8,7 @@ const UserProgramsMongo = require('./Mongo/UserProgramsMongo');
 const ProgramMongo = require('./Mongo/ProgramMongo');
 const ListMongo = require('./Mongo/ListMongo');
 const CardMongo = require('./Mongo/CardMongo');
-
+const CardMemberMongo = require('./Mongo/CardMemberMongo');
 module.exports = {
   UserMongo,
   ProgramMongo,
@@ -19,5 +19,6 @@ module.exports = {
   ProfileImageMongo,
   ListMongo,
   RoleMongo,
+  CardMemberMongo,
   CardMongo
 };
