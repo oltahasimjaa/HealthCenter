@@ -11,6 +11,7 @@ import Program from './dashboard/Program';
 import UserProgram from './dashboard/UserPrograms';
 import List from './dashboard/List';
 import Card from './dashboard/Card';
+import Schedule from './pages/Schedule'
 const AppRoutes = () => {
   const { darkMode } = useTheme();
 
@@ -28,7 +29,7 @@ const AppRoutes = () => {
 
       <Route path="*" element={<Navigate to="/" />} />
 
-
+      <Route path="/Schedule" element={<Schedule />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard/*" element={<Dashboard />} />
