@@ -7,6 +7,8 @@ const City = require('./MySQL/City');
 const ProfileImage = require('./MySQL/ProfileImage');
 const DashboardRole = require('./MySQL/DashboardRole');
 const User = require('./MySQL/User');
+const Appointment = require('./MySQL/Appointment');
+const Schedule = require('./MySQL/Schedule');
 const Program = require('./MySQL/Program');
 const UserPrograms = require('./MySQL/UserPrograms');
 const List = require('./MySQL/List');
@@ -37,6 +39,8 @@ const CountryModel = initializeModel(Country, sequelize);
 const CityModel = initializeModel(City, sequelize);
 const ProfileImageModel = initializeModel(ProfileImage, sequelize);
 const DashboardRoleModel = initializeModel(DashboardRole, sequelize);
+const AppointmentModel = initializeModel(Appointment, sequelize);
+const ScheduleModel = initializeModel(Schedule, sequelize);
 const UserModel = initializeModel(User, sequelize);
 const ProgramModel = initializeModel(Program, sequelize);
 const UserProgramsModel = initializeModel(UserPrograms, sequelize);
@@ -60,6 +64,14 @@ UserModel.belongsTo(CityModel, { foreignKey: 'cityId' });
 
 ProfileImageModel.hasMany(UserModel, { foreignKey: 'profileImageId' });
 UserModel.belongsTo(ProfileImageModel, { foreignKey: 'profileImageId' });
+// Appointment relationships
+UserModel.hasMany(AppointmentModel, { foreignKey: 'userId', as: 'appointments' });
+UserModel.hasMany(AppointmentModel, { foreignKey: 'specialistId', as: 'specialistAppointments' });
+UserModel.hasOne(ScheduleModel, { foreignKey: 'specialistId' });
+ScheduleModel.belongsTo(UserModel, { foreignKey: 'specialistId' });
+
+AppointmentModel.belongsTo(UserModel, { foreignKey: 'userId', as: 'client' });
+AppointmentModel.belongsTo(UserModel, { foreignKey: 'specialistId', as: 'specialist' });
 
 
 // Program relationships
@@ -81,12 +93,18 @@ CardModel.belongsToMany(UserModel, { through: CardMemberModel, foreignKey: 'card
 
 ProgramModel.hasMany(ListModel, { foreignKey: 'programId' });
 ListModel.belongsTo(ProgramModel, { foreignKey: 'programId' });
+
+UserModel.hasMany(ListModel, { foreignKey: 'createdById' });
+ListModel.belongsTo(UserModel, { foreignKey: 'createdById' });
+
 module.exports = {
   sequelize,
   Role: RoleModel,
   Country: CountryModel,
   City: CityModel,
   ProfileImage: ProfileImageModel,
+    Appointment: AppointmentModel,
+      Schedule: ScheduleModel,
   Program: ProgramModel,
   DashboardRole: DashboardRoleModel,
   User: UserModel,

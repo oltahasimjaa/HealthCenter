@@ -15,8 +15,8 @@ const sequelize = require('./config/database');
 const isAuthenticated = require('./middlewares/authMiddleware').isAuthenticated;
 
 const mongoose = require('mongoose')
-const { User, Country, City, ProfileImage, Role, DashboardRole } = require('./infrastructure/database/models/index');
-const { UserMongo, CountryMongo, CityMongo, ProfileImageMongo, RoleMongo, DashboardRoleMongo } = require('./infrastructure/database/models/indexMongo');
+const { User, Country, City, ProfileImage, Role, DashboardRole } = require('./domain/database/models/index');
+const { UserMongo, CountryMongo, CityMongo, ProfileImageMongo, RoleMongo, DashboardRoleMongo } = require('./domain/database/models/indexMongo');
 
 
 
@@ -100,7 +100,7 @@ passport.deserializeUser(async (id, done) => {
 app.use(passport.initialize());
 app.use(passport.session());
 
-// const { RoleMongo, DashboardRoleMongo } = require('./infrastructure/database/models')
+// const { RoleMongo, DashboardRoleMongo } = require('./domain/database/models')
 
 
 
@@ -276,7 +276,7 @@ createDefaultRolesAndOwner();
 
 
 
-// const RoleMongo = require('./infrastructure/database/models/Mongo/RoleMongo');
+// const RoleMongo = require('./domain/database/models/Mongo/RoleMongo');
 
 // app.get('/user', isAuthenticated, async (req, res) => {
 //   try {

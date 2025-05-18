@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const nodemailer = require('nodemailer');
 
-const UserRepository = require("../../infrastructure/repository/UserRepository");
+const UserRepository = require("../../domain/repository/UserRepository");
 const UserPort = require("../../application/ports/UserPort");
 const UserUseCase = require("../../application/use-cases/UserUseCase");
 const port = new UserPort(UserRepository);

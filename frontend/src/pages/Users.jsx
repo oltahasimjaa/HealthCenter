@@ -4,7 +4,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import { useTheme } from "../components/ThemeContext";
 import DeleteConfirmation from "../components/DeleteConfirmation";
-
+import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
 const User = ({ setActiveComponent }) => {
@@ -158,28 +158,18 @@ const User = ({ setActiveComponent }) => {
     // Export functions
  
 
-    const exportToCSV = () => {
+    const exportToExcel = () => {
       if (userList.length === 0) return;
     
       const filteredUserList = userList.map(({ password, profileImage, __v, roleId, ...rest }) => ({
         ...rest,
-        role: roleId?.name || "No Role Assigned"
+        role: roleId && roleId.name ? roleId.name : "No Role Assigned" 
       }));
     
-      // Create CSV headers
-      const headers = Object.keys(filteredUserList[0]).join(',');
-    
-      // Create CSV rows
-      const rows = filteredUserList.map(obj => 
-        Object.values(obj)
-          .map(value => `"${value?.toString().replace(/"/g, '""') || ''}"`)
-          .join(',')
-      );
-    
-      // Combine and create file
-      const csvContent = [headers, ...rows].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      saveAs(blob, "users.csv");
+      const worksheet = XLSX.utils.json_to_sheet(filteredUserList);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Users");
+      XLSX.writeFile(workbook, "users.xlsx");
       setShowDownloadDropdown(false);
     };
     
@@ -235,23 +225,24 @@ const User = ({ setActiveComponent }) => {
                       </button>
                       
                       {showDownloadDropdown && (
-  <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-10 ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}>
-    <div className="py-1">
-      <button
-        onClick={exportToCSV}
-        className={`block w-full text-left px-4 py-2 text-sm ${theme === 'dark' ? 'text-white hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'}`}
-      >
-        CSV (Excel)
-      </button>
-      <button
-        onClick={exportToJSON}
-        className={`block w-full text-left px-4 py-2 text-sm ${theme === 'dark' ? 'text-white hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'}`}
-      >
-        JSON
-      </button>
-    </div>
-  </div>
-)}
+                        <div className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-10 ${theme === 'dark' ? 'bg-gray-700' : 'bg-white'}`}>
+                          <div className="py-1">
+                           
+                            <button
+                              onClick={exportToExcel}
+                              className={`block w-full text-left px-4 py-2 text-sm ${theme === 'dark' ? 'text-white hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'}`}
+                            >
+                              Excel
+                            </button>
+                            <button
+                              onClick={exportToJSON}
+                              className={`block w-full text-left px-4 py-2 text-sm ${theme === 'dark' ? 'text-white hover:bg-gray-600' : 'text-gray-700 hover:bg-gray-100'}`}
+                            >
+                              JSON
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </form>
 

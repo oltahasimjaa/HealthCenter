@@ -8,14 +8,13 @@ import {
   Calendar,  UserCircle2,  CheckSquare,  FileText,   Table,  FileInput,  MessageCircle,
     Mail, Menu,  ChevronDown,  Github, Trello,LogOut, ListCheck,Clipboard, Antenna,
   Users, Layers, Shield, CalendarClock, GraduationCap, ListOrdered, Package, Tags,
-  ClipboardList, UserPlus, ShoppingCart,Star
+  ClipboardList, UserPlus,Star,TruckIcon
 
 } from 'lucide-react';
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
   const [openDropdown, setOpenDropdown] = useState(null);
-  const [cartItemCount, setCartItemCount] = useState(0); // <-- Track cart items
   const { isChecking, user } = useAuthCheck(); 
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -88,7 +87,7 @@ const Sidebar = () => {
     <div className={`${isOpen ? 'w-72' : 'w-20'} bg-white dark:bg-gray-900 dark:text-white border-r h-screen overflow-auto transition-all duration-300 shadow-md flex flex-col justify-between`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       <div>
         <div className="px-4 py-4 border-b flex items-center justify-between">
-          {isOpen && <span className="text-xl font-semibold">Wellness</span>}
+          {isOpen && <span className="text-xl font-semibold">Health</span>}
           <button onClick={toggleSidebar} className="hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded-md">
             <Menu className="w-6 h-6" />
           </button>
@@ -105,12 +104,16 @@ const Sidebar = () => {
 {(isSpecialist || isOwner) && (
         
     <div className="mb-1">
-          <MenuItem 
+
+        
+
+          <div className="mb-1">
+            <MenuItem 
               icon={Layers} 
               label="Manage Programs" 
               hasDropdown={true}
             />
-                {openDropdown === 'Manage Programs' && isOpen && (
+            {openDropdown === 'Manage Programs' && isOpen && (
               <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
                 <div 
                   className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
@@ -126,7 +129,13 @@ const Sidebar = () => {
                   <UserPlus className="w-5 h-5 mr-2" />
                   <span>UserPrograms</span>
                 </div>
-
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('cardmember')}
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  <span>CardMember</span>
+                </div>
                 <div 
                   className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
                   onClick={() => handleMenuItemClick('list')}
@@ -138,9 +147,7 @@ const Sidebar = () => {
 
               </div>
             )}
-        
-
-        
+          </div>
 
 
           {/* Manage Users Dropdown */}
@@ -201,32 +208,59 @@ const Sidebar = () => {
               </div>
             )}
           </div>
-          <div 
-                className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
-                onClick={() => handleMenuItemClick('scheduleTraining')}
-              >
-                <Calendar className="w-5 h-5 mr-2" />
-                <span>Schedule Training</span>
-              </div>
  </div>
 )}
       
 
 
-          {/* Manage Orders Dropdown */}
 
-
+          
 
          {/* <MenuItem 
             icon={ClipboardList} 
             label="Order" 
             componentName="order"
           /> */}
-        
+          <MenuItem 
+            icon={Antenna} 
+            label="Board" 
+            componentName="board"
+          />
+
+          <MenuItem 
+            icon={CalendarClock} 
+            label="Schedule" 
+            componentName="schedule"
+          />
 
 </div> )} 
 
 
+      <div className="mb-1">
+            <MenuItem 
+              icon={Calendar} 
+              label="Manage Appointment" 
+              hasDropdown={true}
+            />
+            {openDropdown === 'Manage Appointment' && isOpen && (
+              <div className={`ml-12 mt-1 space-y-1 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-50'} rounded-md p-1`}>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('appointment')}
+                >
+                  <Table className="w-5 h-5 mr-2" />
+                  <span>Appointments</span>
+                </div>
+                <div 
+                  className="flex items-center px-3 py-2 hover:bg-blue-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                  onClick={() => handleMenuItemClick('createappointment')}
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  <span>Create Appointment</span>
+                </div>
+              </div>
+            )}
+          </div>
 
 
            
@@ -240,38 +274,15 @@ const Sidebar = () => {
 
         
 
-           <MenuItem 
-            icon={MessageCircle} 
-            label="Chat" 
-            componentName="chat"
-          />
-          {/* shopping cart*/}
-       
+
+
+
           
         </div>
 
 
-        <div className="py-2 border-t bg-white dark:bg-gray-900 dark:text-white">
-          {isOpen && <div className="text-sm text-gray-400 px-4 py-2">SUPPORT</div>}
-          <MenuItem 
-            icon={Github} 
-            label="Repository" 
-            externalLink={true}
-            onClick={() => window.open("https://github.com/oltahasimjaa/HealthCenter", "_blank", "noopener,noreferrer")}
-          />
-          <MenuItem 
-            icon={Trello} 
-            label="Trello" 
-            externalLink={true}
-            onClick={() => window.open("_blank", "noopener,noreferrer")}
-          />
-        </div>
+     
       </div>
-      {/* <MenuItem 
-            icon={CalendarClock} 
-            label="Schedule" 
-            componentName="schedule"
-          /> */}
 
       <div className="p-4 border-t bg-white dark:bg-gray-900 dark:text-white">
         <button 

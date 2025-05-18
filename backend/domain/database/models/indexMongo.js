@@ -8,6 +8,9 @@ const UserProgramsMongo = require('./Mongo/UserProgramsMongo');
 const ProgramMongo = require('./Mongo/ProgramMongo');
 const ListMongo = require('./Mongo/ListMongo');
 const CardMongo = require('./Mongo/CardMongo');
+const ScheduleMongo = require('./Mongo/ScheduleMongo');
+const AppointmentMongo = require('./Mongo/AppointmentMongo');
+const AttachmentMongo = require('./Mongo/AttachmentMongo');
 const CardMemberMongo = require('./Mongo/CardMemberMongo');
 module.exports = {
   UserMongo,
@@ -19,6 +22,9 @@ module.exports = {
   ProfileImageMongo,
   ListMongo,
   RoleMongo,
+   ScheduleMongo,
+     AppointmentMongo,
+  AttachmentMongo,
   CardMemberMongo,
   CardMongo
 };
