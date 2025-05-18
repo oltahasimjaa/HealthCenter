@@ -87,7 +87,7 @@ const Sidebar = () => {
     <div className={`${isOpen ? 'w-72' : 'w-20'} bg-white dark:bg-gray-900 dark:text-white border-r h-screen overflow-auto transition-all duration-300 shadow-md flex flex-col justify-between`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
       <div>
         <div className="px-4 py-4 border-b flex items-center justify-between">
-          {isOpen && <span className="text-xl font-semibold">Health</span>}
+          {isOpen && <span className="text-xl font-semibold">Wellness</span>}
           <button onClick={toggleSidebar} className="hover:bg-gray-100 dark:hover:bg-gray-700 p-2 rounded-md">
             <Menu className="w-6 h-6" />
           </button>
@@ -104,7 +104,8 @@ const Sidebar = () => {
 {(isSpecialist || isOwner) && (
         
     <div className="mb-1">
-
+           
+          
         
 
           <div className="mb-1">
@@ -210,11 +211,11 @@ const Sidebar = () => {
           </div>
  </div>
 )}
-      
+       
 
 
-
-          
+            
+   
 
          {/* <MenuItem 
             icon={ClipboardList} 
@@ -275,13 +276,14 @@ const Sidebar = () => {
         
 
 
-
-
           
         </div>
 
 
-     
+        <div className="py-2 border-t bg-white dark:bg-gray-900 dark:text-white">
+          {isOpen && <div className="text-sm text-gray-400 px-4 py-2">SUPPORT</div>}
+  
+        </div>
       </div>
 
       <div className="p-4 border-t bg-white dark:bg-gray-900 dark:text-white">

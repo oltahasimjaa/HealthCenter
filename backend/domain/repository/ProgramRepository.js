@@ -64,13 +64,17 @@ class ProgramRepository {
 
       console.error("Error creating Program:", error);
       throw error;
-      throw new Error('Error creating Program: ' + error.message);
+    
     }
     
   }
   async update(id, data) {
     try {
-
+      await Log.create({
+        userId: data.updatedById || data.createdById || null, // whoever is performing the update
+        action: 'UPDATE_PROGRAM_START',
+        details: `Attempting to update program ${id}`
+      });
 
       // Update in MySQL
       const [updatedCount] = await Program.update(
@@ -82,7 +86,6 @@ class ProgramRepository {
         throw new Error("Program not found in MySQL");
       }
 
-      // Prepare update data for MongoDB
       const mongoUpdateData = { ...data };
       
       // Handle foreign keys - convert MySQL IDs to MongoDB references
@@ -119,13 +122,13 @@ class ProgramRepository {
   
   async delete(id, userId) { // Add userId parameter to track who performed the deletion
     try {
- 
+
 
         // Delete from MySQL
         const deletedMySQL = await Program.destroy({ where: { id } });
         
         if (deletedMySQL === 0) {
-      
+ 
             throw new Error("Program not found in MySQL");
         }
 
@@ -135,6 +138,7 @@ class ProgramRepository {
         if (deleteResult.deletedCount === 0) {
             console.warn("Program not found in MongoDB");
         }
+
 
 
         return deletedMySQL;

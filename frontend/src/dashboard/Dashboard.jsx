@@ -5,18 +5,23 @@ import Sidebar from "../components/Sidebar";
 import Navbar from '../components/Navbar';
 import useAuthCheck from '../hook/useAuthCheck';
 import AccessDenied from './AccessDenied'; 
-import Program from './Program';
+import NotFound from '../components/NotFound';
 
 // Import all components
-
+import List from './List';
+import UserPrograms from './UserPrograms';
 import User from './Users/User';
 import Profile from './Profile';
-import UserPrograms from './UserPrograms';
+import Program from './Program';
 import CreateUser from './Users/CreateUser';
 import EditUser from './Users/EditUser';
 import Role from './Roles/Role';
 import DashboardRole from './Roles/DashboardRole';
-
+import Card from './Card';
+import Schedule from './Schedule';
+import Appointments from './Appointment/Appointment';
+import CreateAppointment from './Appointment/CreateAppointment';
+import CardMember from './CardMember';
 
 function Dashboard() {
   axios.defaults.withCredentials = true;
@@ -40,13 +45,12 @@ function Dashboard() {
   const componentConfig = {
     // Public components (available to all authenticated users)
     profile: { component: <Profile />, access: true },
-
-  
+    appointment: { component: <Appointments />, access: true },
+    createappointment: { component: <CreateAppointment />, access: true },
+    notfound: { component: <NotFound />, access: true },
 
     
     // Owner only components
-   
-    
     users: { component: <User navigate={navigate} />, access: isSpecialist || isOwner },
     createuser: { component: <CreateUser navigate={navigate} />, access: isSpecialist || isOwner },
     edituser: { component: <EditUser navigate={navigate} />, access: isSpecialist || isOwner },
@@ -54,9 +58,19 @@ function Dashboard() {
     dashboardrole: { component: <DashboardRole />, access: isOwner },
     
     // Admin, Specialist, or Owner components
-    userprograms: { component: <UserPrograms />, access: isSpecialist || isOwner },
     program: { component: <Program />, access: isSpecialist || isOwner },
-  
+    userprograms: { component: <UserPrograms />, access: isSpecialist || isOwner },
+    cardmember:{component:<CardMember/>,access:isSpecialist || isOwner },
+    list: { component: <List />, access: isSpecialist || isOwner },
+   
+    
+
+    
+
+    schedule: { component: <Schedule />, access: isOwner },
+    
+    card: { component: <Card />, access: isClient || isSpecialist },
+    
     // Default component
     '': { component: <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>, access: true },
     null: { component: <h1 className="text-2xl font-bold">Mirë se vini në Dashboard</h1>, access: true },
@@ -114,7 +128,10 @@ function Dashboard() {
   
   if (!isAuthenticated) {
     return <div className="flex justify-center items-center h-screen">Ju lutemi identifikohuni...</div>;
-  }
+}
+if (user?.role === 'Client' && user?.dashboardRole !== 'Owner') {
+  return <AccessDenied />;
+}
 
   const renderComponent = () => {
     const config = componentConfig[activeComponent];
