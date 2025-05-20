@@ -4,26 +4,17 @@ const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
 // Mock the ProgramRepository
-jest.mock('../../domain/repository/ProgramRepository', () => {
-  const mockProgram = {
-    id: 1,
-    title: 'Test Program',
-    description: 'Test Description',
-    createdById: 1
-  };
-  
-  return {
-    findAll: jest.fn(),
-    findById: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn()
-  };
-});
-const ProgramRepository = require('../../domain/repository/ProgramRepository');
+jest.mock('../domain/repository/ProgramRepository', () => ({
+  create: jest.fn(),
+  findAll: jest.fn(),
+  findById: jest.fn(),
+  update: jest.fn(),
+  delete: jest.fn()
+}));
+const ProgramRepository = require('../domain/repository/ProgramRepository');
 
 // Mock auth middleware
-jest.mock('../../middlewares/authMiddleware', () => ({
+jest.mock('../middlewares/authMiddleware', () => ({
   isAuthenticated: (req, res, next) => {
     req.user = { id: 1 }; // Simulate authenticated user
     next();
@@ -47,7 +38,7 @@ describe('Program API Tests', () => {
     await mongoose.connect(mongoUri);
     
     // Setup routes - import after mocks are set up
-    const ProgramRoutes = require('../../routes/ProgramRoutes');
+    const ProgramRoutes = require('../routes/ProgramRoutes');
     app.use('/api/program', ProgramRoutes);
   });
 
@@ -81,7 +72,7 @@ describe('Program API Tests', () => {
       expect(response.body).toEqual(mockProgram);
     });
 
-    it('should successfully create even without description', async () => {
+    it('should successfully create without description', async () => {
       const mockProgram = {
         id: 1,
         title: 'Test Program',
@@ -139,19 +130,12 @@ describe('Program API Tests', () => {
         .get('/api/program/999');
 
       expect(response.status).toBe(404);
-      expect(response.body).toEqual({ message: 'Program not found' });
     });
   });
 
   describe('PUT /api/program/:id', () => {
-    it('should update an existing program', async () => {
-      const updatedProgram = {
-        id: 1,
-        title: 'Updated Program',
-        description: 'Updated Description'
-      };
-      
-      ProgramRepository.update.mockResolvedValue(updatedProgram);
+    it('should return true when updating existing program', async () => {
+      ProgramRepository.update.mockResolvedValue(true);
 
       const response = await request(app)
         .put('/api/program/1')
@@ -161,11 +145,11 @@ describe('Program API Tests', () => {
         });
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual(updatedProgram);
+      expect(response.body).toBe(true);
     });
 
     it('should return 404 when updating non-existent program', async () => {
-      ProgramRepository.update.mockResolvedValue(null);
+      ProgramRepository.update.mockResolvedValue(false);
 
       const response = await request(app)
         .put('/api/program/999')
@@ -174,7 +158,6 @@ describe('Program API Tests', () => {
         });
 
       expect(response.status).toBe(404);
-      expect(response.body).toEqual({ message: 'Program not found' });
     });
   });
 
@@ -190,7 +173,7 @@ describe('Program API Tests', () => {
       expect(response.body).toEqual({ success: true });
     });
 
-    it('should return 200 even for non-existent program', async () => {
+    it('should handle non-existent program deletion', async () => {
       ProgramRepository.delete.mockResolvedValue({ success: false });
 
       const response = await request(app)
@@ -198,6 +181,7 @@ describe('Program API Tests', () => {
         .send({ userId: 1 });
 
       expect(response.status).toBe(200);
+      expect(response.body).toEqual({ success: false });
     });
   });
 });

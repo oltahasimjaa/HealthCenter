@@ -73,7 +73,7 @@ function MyPrograms() {
     useEffect(() => {
         const checkLoginStatus = async () => {
             try {
-                const response = await axios.get("http://localhost:5001/user", { withCredentials: true });
+                const response = await axios.get("http://localhost:5000/user", { withCredentials: true });
                 if (!response.data.user) {
                     navigate("/login");
                 } else {
@@ -92,8 +92,8 @@ function MyPrograms() {
         try {
           // Fetch programs and all users (to get creator roles)
           const [programsResponse, usersResponse] = await Promise.all([
-            axios.get("http://localhost:5001/api/userprograms"),
-            axios.get("http://localhost:5001/api/user") // Endpoint to get all users with their roles
+            axios.get("http://localhost:5000/api/userprograms"),
+            axios.get("http://localhost:5000/api/user") // Endpoint to get all users with their roles
           ]);
     
           const userIdStr = String(userId);
@@ -176,14 +176,14 @@ function MyPrograms() {
                             variants={fadeInUp}
                             className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl"
                         >
-                            My <span className="text-yellow-300">Health</span> Programs
+                            My <span className="text-yellow-300">Wellness</span> Programs
                         </motion.h1>
 
                         <motion.p
                             variants={fadeInUp}
                             className="mt-6 text-xl leading-8 text-blue-100 max-w-2xl mx-auto"
                         >
-                            {currentUser && `Welcome back, ${currentUser.name}! Here are your active Health programs.`}
+                            {currentUser && `Welcome back, ${currentUser.name}! Here are your active wellness programs.`}
                         </motion.p>
                     </motion.div>
                 </div>
@@ -224,7 +224,7 @@ function MyPrograms() {
                         </div>
                         <h3 className="text-2xl font-bold text-gray-900 mb-3">No Programs Yet</h3>
                         <p className="text-gray-600 max-w-md mx-auto mb-6">
-                            You don't have any active Health programs. Explore our services to get started on your journey.
+                            You don't have any active wellness programs. Explore our services to get started on your journey.
                         </p>
                         <motion.button
                             whileHover={{
@@ -266,12 +266,12 @@ function MyPrograms() {
                                         animate={hoveredProgram === program._id ? { scale: 1 } : {}}
                                         className="w-full h-full object-cover"
                                         src={getProgramImage(program, roles)}
-                                        alt="Health program"
+                                        alt="Wellness program"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent opacity-60"></div>
                                     <div className="absolute bottom-4 left-4">
                                         <h3 className="text-xl font-bold text-white">
-                                            {program.programId?.title || 'Health Program'}
+                                            {program.programId?.title || 'Wellness Program'}
                                         </h3>
                                         <div className="flex mt-1">
                                             {[...Array(5)].map((_, i) => (
@@ -293,7 +293,7 @@ function MyPrograms() {
                                     </div>
 
                                     <p className="text-gray-600 mb-4">
-                                        {program.programId?.description || 'A comprehensive Health program designed for your needs.'}
+                                        {program.programId?.description || 'A comprehensive wellness program designed for your needs.'}
                                     </p>
 
                                     <div className="flex items-center justify-between mt-6">
@@ -341,7 +341,7 @@ function MyPrograms() {
                             Need a <span className="text-yellow-300">different</span> program?
                         </h2>
                         <p className="text-lg leading-8 text-blue-100 mb-8">
-                            Our experts can create a personalized Health plan tailored to your specific goals and needs.
+                            Our experts can create a personalized wellness plan tailored to your specific goals and needs.
                         </p>
                         <motion.div className="flex flex-col sm:flex-row justify-center gap-4">
                             <motion.button

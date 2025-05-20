@@ -13,6 +13,7 @@ import UserProgram from './dashboard/UserPrograms';
 import List from './dashboard/List';
 import Card from './dashboard/Card';
 import Schedule from './pages/Schedule';
+import ProgramDetail from './dashboard/ProgramDetail'; 
 import MyPrograms from './pages/MyPrograms';
 import CreateAppointment from './pages/CreateAppointment';
 import MyAppointments from './pages/MyAppointments';
@@ -48,6 +49,7 @@ const AppRoutes = () => {
         <Route path="/userprograms" element={<UserProgram />} />
         <Route path="/list" element={<List />} />
         <Route path="/card" element={<Card />} />
+         <Route path="/programs/:id" element={<ProgramDetail />} />
                 <Route path="/MyPrograms" element={<MyPrograms />} />
         <Route path="/cardmember" element={<CardMember/>}/>
       </Routes>

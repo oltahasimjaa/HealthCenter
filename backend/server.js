@@ -382,9 +382,13 @@ app.use(passport.session());
 
 
 
-const PORT = 5001;
 
-sequelize.sync().then(() => {
-  //    console.log('Database synced successfully');
-  app.listen(PORT, () => console.log(`Server: ${PORT} OK`))
-}).catch((err) => console.log(err));
+// Only start server if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  const PORT = 5001;
+  app.listen(PORT, () => {
+    console.log(`Server: ${PORT} OK`);
+  });
+}
+
+module.exports = app; // This should be the last line
