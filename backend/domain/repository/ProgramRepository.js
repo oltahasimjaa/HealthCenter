@@ -1,203 +1,148 @@
-const request = require('supertest');
-const express = require('express');
+
 const mongoose = require('mongoose');
-const { MongoMemoryServer } = require('mongodb-memory-server');
+const { ObjectId } = require('mongoose').Types;
 
-// Mock the ProgramRepository
-jest.mock('../../domain/repository/ProgramRepository', () => {
-  const mockProgram = {
-    id: 1,
-    title: 'Test Program',
-    description: 'Test Description',
-    createdById: 1
-  };
-  
-  return {
-    findAll: jest.fn(),
-    findById: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn()
-  };
-});
-const ProgramRepository = require('../../domain/repository/ProgramRepository');
 
-// Mock auth middleware
-jest.mock('../../middlewares/authMiddleware', () => ({
-  isAuthenticated: (req, res, next) => {
-    req.user = { id: 1 }; // Simulate authenticated user
-    next();
+const { Program, User } = require('../database/models/index');
+const { ProgramMongo, UserMongo } = require('../database/models/indexMongo');
+
+
+class ProgramRepository {
+  // Read operations - Get from MongoDB with fallback to MySQL
+  async findAll() {
+    try {
+      // Get all from MongoDB with populated relationships
+      return await ProgramMongo.find().populate([{ path: 'createdById', model: 'UserMongo' }]).lean();
+    } catch (error) {
+      // Fallback to MySQL if MongoDB fails
+      console.error("MongoDB findAll failed, falling back to MySQL:", error);
+      // return await Program.findAll({ include: [{ model: User }] });
+    }
   }
-}));
-
-describe('Program API Tests', () => {
-  let app;
-  let mongoServer;
-
-  beforeAll(async () => {
-    // Create express app
-    app = express();
-    app.use(express.json());
+  
+  async findById(id) {
+    try {
+      // Get from MongoDB with populated relationships
+      return await ProgramMongo.findOne({ mysqlId: id }).populate([{ path: 'createdById', model: 'UserMongo' }]).lean();
+    } catch (error) {
+      // Fallback to MySQL if MongoDB fails
+      console.error("MongoDB findById failed, falling back to MySQL:", error);
+      // return await Program.findByPk(id, { include: [{ model: User }] });
+    }
+  }
+  
+  // Write operations - Write to both MongoDB and MySQL
+  async create(data) {
+    try {
+      console.log("Creating Program:", data);
+  
+      // First create in MySQL
+      const mysqlResource = await Program.create(data);
+   
+      // Prepare data for MongoDB, remove _id to let MongoDB generate it automatically
+      const mongoData = {
+        mysqlId: mysqlResource.id.toString(),
+        ...data,
+        createdAt: new Date(), // Ensure createdAt is set for MongoDB as well
+      };
+  
+      // Handle foreign keys - convert MySQL IDs to MongoDB references
+      if (data.createdById) {
+        const user = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
+        if (!user) {
+          throw new Error(`User with MySQL ID ${data.createdById} not found in MongoDB`);
+        }
+        mongoData.createdById = new ObjectId(user._id.toString()); // Ensure proper casting
+      }
+  
+      // Create in MongoDB (let MongoDB generate the _id)
+      const mongoResource = await ProgramMongo.create(mongoData);
+      console.log("Program saved in MongoDB:", mongoResource);
+  
+      return mysqlResource;
+    } catch (error) {
+  
+      console.error("Error creating Program:", error);
+      throw error;
+      throw new Error('Error creating Program: ' + error.message);
+    }
     
-    // Setup in-memory MongoDB
-    mongoServer = await MongoMemoryServer.create();
-    const mongoUri = mongoServer.getUri();
-    
-    // Connect to MongoDB
-    await mongoose.connect(mongoUri);
-    
-    // Setup routes - import after mocks are set up
-    const ProgramRoutes = require('../../routes/ProgramRoutes');
-    app.use('/api/program', ProgramRoutes);
-  });
+  }
+  async update(id, data) {
+    try {
+  
+      // Update in MySQL
+      const [updatedCount] = await Program.update(
+        { ...data },
+        { where: { id } }
+      );
+  
+      if (updatedCount === 0) {
+        throw new Error("Program not found in MySQL");
+      }
 
-  afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-  });
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  describe('POST /api/program', () => {
-    it('should create a new program with valid data', async () => {
-      const mockProgram = {
-        id: 1,
-        title: 'Test Program',
-        description: 'Test Description',
-        createdById: 1
-      };
-      ProgramRepository.create.mockResolvedValue(mockProgram);
-
-      const response = await request(app)
-        .post('/api/program')
-        .send({
-          title: 'Test Program',
-          description: 'Test Description'
-        });
-
-      expect(response.status).toBe(201);
-      expect(response.body).toEqual(mockProgram);
-    });
-
-    it('should successfully create even without description', async () => {
-      const mockProgram = {
-        id: 1,
-        title: 'Test Program',
-        createdById: 1
-      };
-      ProgramRepository.create.mockResolvedValue(mockProgram);
-
-      const response = await request(app)
-        .post('/api/program')
-        .send({
-          title: 'Test Program'
-        });
-
-      expect(response.status).toBe(201);
-      expect(response.body).toEqual(mockProgram);
-    });
-  });
-
-  describe('GET /api/program', () => {
-    it('should get all programs', async () => {
-      const mockPrograms = [
-        { id: 1, title: 'Program 1' },
-        { id: 2, title: 'Program 2' }
-      ];
-      ProgramRepository.findAll.mockResolvedValue(mockPrograms);
-
-      const response = await request(app)
-        .get('/api/program');
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual(mockPrograms);
-    });
-  });
-
-  describe('GET /api/program/:id', () => {
-    it('should get a single program', async () => {
-      const mockProgram = {
-        id: 1,
-        title: 'Test Program',
-        description: 'Test Description'
-      };
-      ProgramRepository.findById.mockResolvedValue(mockProgram);
-
-      const response = await request(app)
-        .get('/api/program/1');
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual(mockProgram);
-    });
-
-    it('should return 404 for non-existent program', async () => {
-      ProgramRepository.findById.mockResolvedValue(null);
-
-      const response = await request(app)
-        .get('/api/program/999');
-
-      expect(response.status).toBe(404);
-      expect(response.body).toEqual({ message: 'Program not found' });
-    });
-  });
-
-  describe('PUT /api/program/:id', () => {
-    it('should update an existing program', async () => {
-      const updatedProgram = {
-        id: 1,
-        title: 'Updated Program',
-        description: 'Updated Description'
-      };
+      // Prepare update data for MongoDB
+      const mongoUpdateData = { ...data };
       
-      ProgramRepository.update.mockResolvedValue(updatedProgram);
+      // Handle foreign keys - convert MySQL IDs to MongoDB references
+      
+      if (data.createdById) {
+        // Find the related document in MongoDB
+        const role = await UserMongo.findOne({ mysqlId: data.createdById.toString() });
+        if (!role) {
+          throw new Error(`Role with MySQL ID ${data.createdById} not found in MongoDB`);
+        }
+        mongoUpdateData.createdById = new ObjectId(role._id.toString());
+      }
+      
+      // Update in MongoDB
+      const updatedMongoDB = await ProgramMongo.updateOne(
+        { mysqlId: id },
+        { $set: mongoUpdateData }
+      );
+  
+      if (updatedMongoDB.modifiedCount === 0) {
+        console.warn("User not found in MongoDB or no changes made");
+      }
+  
+      // Return the updated resource with populated relationships
+      return this.findById(id);
+    } catch (error) {
 
-      const response = await request(app)
-        .put('/api/program/1')
-        .send({
-          title: 'Updated Program',
-          description: 'Updated Description'
-        });
+      console.error("Error updating User:", error);
+      throw error;
+      throw new Error('Error updating User: ' + error.message);
+    }
+  }
+  
+  
+  async delete(id, userId) { // Add userId parameter to track who performed the deletion
+    try {
+ 
+        // Delete from MySQL
+        const deletedMySQL = await Program.destroy({ where: { id } });
+        
+        if (deletedMySQL === 0) {
+      
+            throw new Error("Program not found in MySQL");
+        }
 
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual(updatedProgram);
-    });
+        // Delete from MongoDB
+        const deleteResult = await ProgramMongo.deleteOne({ mysqlId: id });
+        
+        if (deleteResult.deletedCount === 0) {
+            console.warn("Program not found in MongoDB");
+        }
 
-    it('should return 404 when updating non-existent program', async () => {
-      ProgramRepository.update.mockResolvedValue(null);
 
-      const response = await request(app)
-        .put('/api/program/999')
-        .send({
-          title: 'Updated Program'
-        });
 
-      expect(response.status).toBe(404);
-      expect(response.body).toEqual({ message: 'Program not found' });
-    });
-  });
+        return deletedMySQL;
+    } catch (error) {
+ 
+        console.error("Error deleting Program:", error);
+        throw error;
+    }
+}
+}
 
-  describe('DELETE /api/program/:id', () => {
-    it('should delete an existing program', async () => {
-      ProgramRepository.delete.mockResolvedValue({ success: true });
-
-      const response = await request(app)
-        .delete('/api/program/1')
-        .send({ userId: 1 });
-
-      expect(response.status).toBe(200);
-      expect(response.body).toEqual({ success: true });
-    });
-
-    it('should return 200 even for non-existent program', async () => {
-      ProgramRepository.delete.mockResolvedValue({ success: false });
-
-      const response = await request(app)
-        .delete('/api/program/999')
-        .send({ userId: 1 });
-
-      expect(response.status).toBe(200);
-    });
-  });
-});
+module.exports = new ProgramRepository();
