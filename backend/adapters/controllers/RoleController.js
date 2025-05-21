@@ -26,12 +26,18 @@ const getRoleById = async (req, res) => {
 };
 const createRole = async (req, res) => {
   try {
+    const { name } = req.body;
+    if (!name) {
+      return res.status(400).json({ message: "Missing required field: name" });
+    }
+
     const newResource = await UseCase.create(req.body);
     res.status(201).json(newResource);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
 const updateRole = async (req, res) => {
   try {
     const updatedResource = await UseCase.update(req.params.id, req.body);

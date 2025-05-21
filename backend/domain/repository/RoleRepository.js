@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 const { ObjectId } = require('mongoose').Types;
 
@@ -14,7 +13,9 @@ class RoleRepository {
     } catch (error) {
       // Fallback to MySQL if MongoDB fails
       console.error("MongoDB findAll failed, falling back to MySQL:", error);
-      // return await Role.findAll({  });
+      // TODO: Uncomment and implement MySQL fallback:
+      // return await Role.findAll({ /* add options if needed */ });
+      return []; // Temporary fallback to empty array to avoid errors
     }
   }
   
@@ -25,7 +26,9 @@ class RoleRepository {
     } catch (error) {
       // Fallback to MySQL if MongoDB fails
       console.error("MongoDB findById failed, falling back to MySQL:", error);
-      // return await Role.findByPk(id, {  });
+      // TODO: Uncomment and implement MySQL fallback:
+      // return await Role.findByPk(id, { /* add options if needed */ });
+      return null; // Temporary fallback to null to avoid errors
     }
   }
   
@@ -43,8 +46,7 @@ class RoleRepository {
         ...data
       };
       
-      // Handle foreign keys - convert MySQL IDs to MongoDB references
-      
+      // TODO: Handle foreign keys - convert MySQL IDs to MongoDB references if needed
       
       // Create in MongoDB
       const mongoResource = await RoleMongo.create(mongoData);
@@ -66,14 +68,14 @@ class RoleRepository {
       );
   
       if (updatedCount === 0) {
-        throw new Error("Role not found in MySQL");
+        // No rows updated -> role not found
+        return null;
       }
       
       // Prepare update data for MongoDB
       const mongoUpdateData = { ...data };
       
-      // Handle foreign keys - convert MySQL IDs to MongoDB references
-      
+      // TODO: Handle foreign keys - convert MySQL IDs to MongoDB references if needed
       
       // Update in MongoDB
       const updatedMongoDB = await RoleMongo.updateOne(
