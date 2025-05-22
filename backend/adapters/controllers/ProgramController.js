@@ -1,4 +1,4 @@
-
+const mongoose = require('mongoose'); 
 const ProgramRepository = require("../../domain/repository/ProgramRepository");
 const ProgramPort = require("../../application/ports/ProgramPort");
 const ProgramUseCase = require("../../application/use-cases/ProgramUseCase");
@@ -29,6 +29,12 @@ const createProgram = async (req, res) => {
     const newResource = await UseCase.create(req.body);
     res.status(201).json(newResource);
   } catch (error) {
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        error: 'Validation failed',
+        details: Object.values(error.errors).map(e => e.message)
+      });
+    }
     res.status(500).json({ message: error.message });
   }
 };

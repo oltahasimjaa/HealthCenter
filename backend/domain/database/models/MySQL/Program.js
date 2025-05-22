@@ -3,11 +3,14 @@ const sequelize = require('../../../../config/database');
 
 const Program = sequelize.define('Program', {
   title: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(255),
     allowNull: false,
+     validate: {
+      len: [1, 255] // Validate length
+    }
   },
   description: {
-    type: DataTypes.TEXT,
+    type: DataTypes.TEXT(1000),
     allowNull: true,
   },
   createdById: {
