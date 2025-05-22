@@ -10,9 +10,16 @@ const programSchema = new Schema({
   title: {
     type: String,
     required: true,
-  },
+        maxlength: 255, // Add this validation
+    validate: {
+      validator: function(v) {
+        return v.length <= 255;
+      },
+      message: props => `Title must be 255 characters or less`
+    }},
   description: {
     type: String,
+     maxlength: 1000,
   },
   createdById: {
     type: mongoose.Schema.Types.ObjectId,

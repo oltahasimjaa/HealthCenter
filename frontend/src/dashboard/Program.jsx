@@ -37,20 +37,60 @@ const Program = () => {
     setProgramList(response.data);
   };
 
+    const [errors, setErrors] = useState({});
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Title validation
+    if (!formData.title || formData.title.trim() === '') {
+      newErrors.title = 'Title is required';
+    } else if (formData.title.length > 255) {
+      newErrors.title = 'Title must be 255 characters or less';
+    }
+    
+    // Description validation (optional field)
+    if (formData.description && formData.description.length > 1000) {
+      newErrors.description = 'Description must be 1000 characters or less';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) return;
-  
-    const dataToSend = { ...formData, createdById: user.id };
-  
-    if (formData.id) {
-      await axios.put(`http://localhost:5001/api/program/${formData.id}`, dataToSend);
-    } else {
-      await axios.post('http://localhost:5001/api/program', dataToSend);
+    
+    if (!validateForm()) {
+      return; // Don't submit if validation fails
     }
-    fetchPrograms();
-    setFormData({});
+    
+    const dataToSend = { ...formData, createdById: user.id };
+    
+    try {
+      if (formData.id) {
+        await axios.put(`http://localhost:5001/api/program/${formData.id}`, dataToSend);
+      } else {
+        await axios.post('http://localhost:5001/api/program', dataToSend);
+      }
+      fetchPrograms();
+      setFormData({});
+      setErrors({});
+    } catch (error) {
+      if (error.response?.data?.details) {
+        // Handle server-side validation errors
+        const serverErrors = {};
+        error.response.data.details.forEach((msg) => {
+          if (msg.includes('title')) serverErrors.title = msg;
+          if (msg.includes('description')) serverErrors.description = msg;
+        });
+        setErrors(serverErrors);
+      } else {
+        console.error('Error:', error);
+      }
+    }
   };
+
 
   const handleEdit = (item) => {
     setFormData({ ...item, id: item.mysqlId || item.id });
@@ -84,27 +124,46 @@ const Program = () => {
             <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-3xl">
               <h1 className="text-3xl font-bold text-center mb-6 text-gray-700">Program Management</h1>
               
-              <form onSubmit={handleSubmit} className="mb-6 space-y-4">
-                <input
-                  type="text"
-                  placeholder="title"
-                  value={formData.title || ''}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
-                />
+    <form onSubmit={handleSubmit} className="mb-6 space-y-4">
+  <div>
+    <input
+      type="text"
+      placeholder="Title"
+      value={formData.title || ''}
+      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+      className={`border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none ${
+        errors.title ? 'border-red-500' : ''
+      }`}
+      maxLength={255}
+    />
+    {errors.title && (
+      <p className="text-red-500 text-sm mt-1">{errors.title}</p>
+    )}
+  </div>
 
-                <input
-                  type="text"
-                  placeholder="description"
-                  value={formData.description || ''}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none"
-                />
+  <div>
+    <textarea
+      placeholder="Description (optional)"
+      value={formData.description || ''}
+      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+      className={`border p-3 rounded-md w-full focus:ring-2 focus:ring-blue-500 outline-none ${
+        errors.description ? 'border-red-500' : ''
+      }`}
+      rows={4}
+      maxLength={1000}
+    />
+    {errors.description && (
+      <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+    )}
+    <p className="text-gray-500 text-sm mt-1">
+      {formData.description?.length || 0}/1000 characters
+    </p>
+  </div>
 
-                <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md font-semibold text-lg">
-                  {formData.id ? 'Përditëso' : 'Shto'}
-                </button>
-              </form>
+  <button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md font-semibold text-lg">
+    {formData.id ? 'Përditëso' : 'Shto'}
+  </button>
+</form>
 
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse shadow-md rounded-md bg-white">

@@ -70,64 +70,68 @@ it('displays the list of programs', async () => {
   // Change to getAllByText since there are multiple Test User cells
   expect(screen.getAllByText('Test User').length).toBeGreaterThan(0);
 });
-  describe('Form Functionality', () => {
-    it('allows adding a new program', async () => {
-      axios.post.mockResolvedValue({ status: 201 });
+describe('Form Functionality', () => {
+  it('allows adding a new program', async () => {
+    axios.post.mockResolvedValue({ status: 201 });
 
-      render(
-        <MemoryRouter>
-          <Program />
-        </MemoryRouter>
+    render(
+      <MemoryRouter>
+        <Program />
+      </MemoryRouter>
+    );
+
+    // Change to match the actual placeholder text ('Title' instead of 'title')
+    await userEvent.type(screen.getByPlaceholderText('Title'), 'New Program');
+    // Change to match the actual placeholder text ('Description (optional)' instead of 'description')
+    await userEvent.type(screen.getByPlaceholderText('Description (optional)'), 'New Description');
+    await userEvent.click(screen.getByRole('button', { name: /Shto/i }));
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        'http://localhost:5001/api/program',
+        expect.objectContaining({
+          title: 'New Program',
+          description: 'New Description',
+          createdById: mockUser.id,
+        })
       );
-
-      await userEvent.type(screen.getByPlaceholderText('title'), 'New Program');
-      await userEvent.type(screen.getByPlaceholderText('description'), 'New Description');
-      await userEvent.click(screen.getByRole('button', { name: /Shto/i }));
-
-      await waitFor(() => {
-        expect(axios.post).toHaveBeenCalledWith(
-          'http://localhost:5001/api/program',
-          expect.objectContaining({
-            title: 'New Program',
-            description: 'New Description',
-            createdById: mockUser.id,
-          })
-        );
-      });
-    });
-
-    it('allows editing an existing program', async () => {
-      axios.put.mockResolvedValue({ status: 200 });
-
-      render(
-        <MemoryRouter>
-          <Program />
-        </MemoryRouter>
-      );
-
-      await screen.findByText('Program 1');
-      const editButtons = screen.getAllByText('Edit');
-      await userEvent.click(editButtons[0]);
-
-      expect(screen.getByDisplayValue('Program 1')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('Desc 1')).toBeInTheDocument();
-      expect(screen.getByText('Përditëso')).toBeInTheDocument();
-
-      await userEvent.clear(screen.getByDisplayValue('Program 1'));
-      await userEvent.type(screen.getByPlaceholderText('title'), 'Updated Program');
-      await userEvent.click(screen.getByText('Përditëso'));
-
-      await waitFor(() => {
-        expect(axios.put).toHaveBeenCalledWith(
-          'http://localhost:5001/api/program/1',
-          expect.objectContaining({
-            title: 'Updated Program',
-            id: '1',
-          })
-        );
-      });
     });
   });
+
+  it('allows editing an existing program', async () => {
+    axios.put.mockResolvedValue({ status: 200 });
+
+    render(
+      <MemoryRouter>
+        <Program />
+      </MemoryRouter>
+    );
+
+    await screen.findByText('Program 1');
+    const editButtons = screen.getAllByText('Edit');
+    await userEvent.click(editButtons[0]);
+
+    expect(screen.getByDisplayValue('Program 1')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Desc 1')).toBeInTheDocument();
+    expect(screen.getByText('Përditëso')).toBeInTheDocument();
+
+    await userEvent.clear(screen.getByDisplayValue('Program 1'));
+    // Change to match the actual placeholder text ('Title' instead of 'title')
+    await userEvent.type(screen.getByPlaceholderText('Title'), 'Updated Program');
+    await userEvent.click(screen.getByText('Përditëso'));
+
+    await waitFor(() => {
+      expect(axios.put).toHaveBeenCalledWith(
+        'http://localhost:5001/api/program/1',
+        expect.objectContaining({
+          title: 'Updated Program',
+          id: '1',
+        })
+      );
+    });
+  });
+});
+  
 
   describe('Delete Functionality', () => {
     it('shows delete confirmation modal', async () => {

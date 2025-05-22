@@ -89,6 +89,54 @@ describe('Program API Tests', () => {
       expect(response.status).toBe(201);
       expect(response.body).toEqual(mockProgram);
     });
+it('should reject program creation when title exceeds 255 chars (Invalid Input)', async () => {
+  const longTitle = 'a'.repeat(256);
+  
+  // Create a proper Mongoose validation error
+  const validationError = new mongoose.Error.ValidationError(null);
+  validationError.errors = {
+    title: new mongoose.Error.ValidatorError({
+      message: 'Title must be 255 characters or less',
+      path: 'title',
+      value: longTitle
+    })
+  };
+
+  ProgramRepository.create.mockRejectedValue(validationError);
+
+  const response = await request(app)
+    .post('/api/program')
+    .send({
+      title: longTitle,
+      description: 'Valid description'
+    });
+
+  expect(response.status).toBe(400);
+  expect(response.body).toHaveProperty('error');
+  expect(response.body).toHaveProperty('details');
+  // Update this line to match the exact error message
+  expect(response.body.details[0]).toBe('Title must be 255 characters or less');
+}, 10000);
+  it('should accept program creation when description is 1000 chars (Edge Case)', async () => {
+    const mockProgram = {
+      id: 1,
+      title: 'Valid Program',
+      description: 'a'.repeat(1000), // 1000 chars (valid edge case)
+      createdById: 1
+    };
+    ProgramRepository.create.mockResolvedValue(mockProgram);
+
+    const response = await request(app)
+      .post('/api/program')
+      .send({
+        title: 'Valid Program',
+        description: 'a'.repeat(1000)
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.description.length).toBe(1000); // Verify long description is accepted
+  });
+
   });
 
   describe('GET /api/program', () => {
