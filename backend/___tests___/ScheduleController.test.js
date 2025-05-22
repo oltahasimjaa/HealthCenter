@@ -111,25 +111,67 @@ describe('Schedule Controller Boundary Tests', () => {
     expect(response.status).toBe(201);
   });
   });
-
-  describe('PUT /api/schedule/:id - update boundary checks', () => {
-    it('should reject update with missing required fields', async () => {
-      const response = await request(app)
-        .put('/api/schedule/1')
-        .send({});
-      expect(response.status).toBe(400);
-    });
-
-    it('should return 404 if valid update data is provided but ID not found', async () => {
-      ScheduleRepository.update.mockResolvedValue(null);
-      const response = await request(app).put('/api/schedule/999').send({
-        workDays: ['Tuesday'],
-        startTime: '09:00',
-        endTime: '18:00'
-      });
-      expect(response.status).toBe(404);
-    });
+describe('PUT /api/schedule/:id - update boundary checks', () => {
+  it('should reject update with missing required fields', async () => {
+    const response = await request(app)
+      .put('/api/schedule/1')
+      .send({});
+    expect(response.status).toBe(400);
   });
+
+  it('should return 404 if valid update data is provided but ID not found', async () => {
+    ScheduleRepository.update.mockResolvedValue(null);
+    const response = await request(app).put('/api/schedule/999').send({
+      workDays: ['Tuesday'],
+      startTime: '09:00',
+      endTime: '18:00'
+    });
+    expect(response.status).toBe(404);
+  });
+
+  it('should reject invalid time format for startTime', async () => {
+    const response = await request(app).put('/api/schedule/1').send({
+      workDays: ['Monday'],
+      startTime: '8am',
+      endTime: '17:00'
+    });
+    expect(response.status).toBe(400);
+  });
+
+  it('should reject when startTime equals endTime', async () => {
+    const response = await request(app).put('/api/schedule/1').send({
+      workDays: ['Monday'],
+      startTime: '08:00',
+      endTime: '08:00'
+    });
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("startTime must be before endTime");
+  });
+
+  it('should reject when startTime is after endTime', async () => {
+    const response = await request(app).put('/api/schedule/1').send({
+      workDays: ['Monday'],
+      startTime: '17:00',
+      endTime: '08:00'
+    });
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("startTime must be before endTime");
+  });
+
+  it('should accept when startTime is 1 minute before endTime', async () => {
+    const updatedSchedule = {
+      id: '1',
+      workDays: ['Monday'],
+      startTime: '08:00',
+      endTime: '08:01'
+    };
+    ScheduleRepository.update.mockResolvedValue(updatedSchedule);
+    const response = await request(app).put('/api/schedule/1').send(updatedSchedule);
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(updatedSchedule);
+  });
+});
+
 
   describe('GET /api/schedule/:id - malformed ID check', () => {
     it('should reject malformed ID', async () => {

@@ -78,6 +78,11 @@ const updateSchedule = async (req, res) => {
       return res.status(400).json({ message: "Invalid endTime format" });
     }
 
+    // 🔴 ADD THIS BLOCK
+    if (startTime >= endTime) {
+      return res.status(400).json({ message: "startTime must be before endTime" });
+    }
+
     if (Array.isArray(unavailableDates) && unavailableDates.length > 1000) {
       return res.status(400).json({ message: "Too many unavailable dates" });
     }
@@ -92,6 +97,7 @@ const updateSchedule = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 const deleteSchedule = async (req, res) => {
   if (!/^\d+$/.test(req.params.id)) {
