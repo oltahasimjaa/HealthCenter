@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ThemeProvider, useTheme } from './components/ThemeContext'; 
 import Home from './pages/Home';
 import Login from './pages/Login';
+import Logout from './pages/Logout'; 
 import Register from './pages/Register';
 import Dashboard from './dashboard/Dashboard';
 import ForgotPassword from './components/ForgotPassword';
@@ -38,6 +39,7 @@ const AppRoutes = () => {
         <Route path="/" element={<Home />} />
       <Route path="/Schedule" element={<Schedule />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/logout" element={<Logout />} />
                 <Route path="/CreateAppointment" element={<CreateAppointment />} />
         <Route path="/MyAppointments" element={<MyAppointments />} />
         <Route path="/Profile" element={<Profile />} />

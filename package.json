@@ -1,0 +1,17 @@
+{
+  "name": "healthcenter",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "mocha selenium-tests/tests/*.test.js --timeout 30000",
+    "test:login": "mocha selenium-tests/tests/login.test.js --timeout 30000",
+    "test:register": "mocha selenium-tests/tests/register.test.js --timeout 30000"
+  },
+  "dependencies": {
+    "selenium-webdriver": "^4.32.0"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "chromedriver": "^136.0.3",
+    "mocha": "^10.2.0"
+  }
+}

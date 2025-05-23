@@ -4,7 +4,6 @@ import ThemeSwitcher from "../components/ThemeSwitcher";
 import { FaArrowLeft, FaHome } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
-
 const Register = () => {
     const [formData, setFormData] = useState({
         name: '',
@@ -28,17 +27,27 @@ const Register = () => {
     const [selectedCountry, setSelectedCountry] = useState("");
     const [selectedCity, setSelectedCity] = useState("");
     const [isSubmitted, setIsSubmitted] = useState(false);
+const today = new Date();
+const minBirthday = new Date(
+  today.getFullYear() - 120, // Maximum age: 120 years old
+  today.getMonth(),
+  today.getDate()
+).toISOString().split('T')[0];
 
-    // Debounce function
+const maxBirthday = new Date(
+  today.getFullYear() - 10, // Minimum age: 10 years old
+  today.getMonth(),
+  today.getDate()
+).toISOString().split('T')[0];
+
     const debounce = (func, delay) => {
         let timer;
-        return function(...args) {
+        return function (...args) {
             clearTimeout(timer);
             timer = setTimeout(() => func.apply(this, args), delay);
         };
     };
 
-    // Check identifier (username or email) availability
     const checkIdentifier = useCallback(debounce(async (type, value) => {
         if (!value || (type === 'username' && value.length < 3)) {
             setValidation(prev => ({ ...prev, [type]: { available: null, checking: false } }));
@@ -46,20 +55,20 @@ const Register = () => {
         }
 
         setValidation(prev => ({ ...prev, [type]: { ...prev[type], checking: true } }));
-        
+
         try {
             const response = await axios.get(`http://localhost:5001/api/login/check/${value}`);
-            
+
             if (response.data.exists) {
                 const isCurrentType = response.data.type === type;
-                setValidation(prev => ({ 
-                    ...prev, 
-                    [type]: { available: !isCurrentType, checking: false } 
+                setValidation(prev => ({
+                    ...prev,
+                    [type]: { available: !isCurrentType, checking: false }
                 }));
             } else {
-                setValidation(prev => ({ 
-                    ...prev, 
-                    [type]: { available: true, checking: false } 
+                setValidation(prev => ({
+                    ...prev,
+                    [type]: { available: true, checking: false }
                 }));
             }
         } catch (error) {
@@ -72,7 +81,7 @@ const Register = () => {
         const fetchCountries = async () => {
             try {
                 const response = await axios.get("https://countriesnow.space/api/v0.1/countries", {
-                    withCredentials: false 
+                    withCredentials: false
                 });
                 if (response.data?.data) {
                     setCountryList(response.data.data);
@@ -87,12 +96,12 @@ const Register = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
-        
+
         if (name === 'username') {
             setValidation(prev => ({ ...prev, username: { available: null, checking: false } }));
             checkIdentifier('username', value);
         }
-        
+
         if (name === 'email') {
             setValidation(prev => ({ ...prev, email: { available: null, checking: false } }));
             if (value.includes('@') && value.includes('.')) {
@@ -104,7 +113,7 @@ const Register = () => {
     const handleCountryChange = (e) => {
         const country = e.target.value;
         setSelectedCountry(country);
-        setFormData(prev => ({ ...prev, country })); 
+        setFormData(prev => ({ ...prev, country }));
 
         if (country === "Kosovo") {
             setCityList([
@@ -119,7 +128,7 @@ const Register = () => {
             setCityList(countryData ? countryData.cities : []);
         }
 
-        setSelectedCity(""); 
+        setSelectedCity("");
         setFormData(prev => ({ ...prev, city: "" }));
     };
 
@@ -129,19 +138,18 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        // Validate before submission
+
         if (validation.username.available === false) {
             setMessage('Please choose a different username');
             return;
         }
-        
+
         if (validation.email.available === false) {
             setMessage('This email is already registered');
             return;
         }
-        
-        if ((validation.username.checking || validation.email.checking) || 
+
+        if ((validation.username.checking || validation.email.checking) ||
             (validation.username.available === null && formData.username.length >= 3) ||
             (validation.email.available === null && formData.email.includes('@'))) {
             setMessage('Please wait while we validate your information');
@@ -158,7 +166,7 @@ const Register = () => {
 
     const renderValidationStatus = (type) => {
         const { available, checking } = validation[type];
-        
+
         if (checking) {
             return <p className="text-sm text-gray-500 mt-1">Checking {type}...</p>;
         }
@@ -171,11 +179,19 @@ const Register = () => {
         return null;
     };
 
+    if (isSubmitted) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen dark:bg-gray-900">
+                <h1 className="text-4xl text-green-500 font-bold">Registration Successful!</h1>
+                <Link to="/login" className="mt-4 text-teal-600 hover:underline">Go to Login</Link>
+            </div>
+        );
+    }
+
     return (
         <div className="flex font-poppins items-center justify-center dark:bg-gray-900 min-w-screen min-h-screen">
             <div className="grid gap-8 w-full max-w-2xl">
-        {/* Back to Home button */}
-                    <div className="absolute top-5 left-5 z-10">
+                <div className="absolute top-5 left-5 z-10">
                     <Link 
                         to="/" 
                         className="flex items-center space-x-2 text-teal-600 hover:text-teal-800 dark:text-teal-400 dark:hover:text-blue-300 transition-colors duration-300"
@@ -183,15 +199,14 @@ const Register = () => {
                         <FaArrowLeft className="text-lg" />
                         <span className="font-medium">Back to Home</span>
                     </Link>
-                    </div>
+                </div>
                 <div className="absolute top-5 right-5 z-10">
                     <ThemeSwitcher />
                 </div>
-                <div id="back-div" className="bg-gradient-to-r from-teal-400 to-teal-700  rounded-[26px] m-4">
+                <div id="back-div" className="bg-gradient-to-r from-teal-400 to-teal-700 rounded-[26px] m-4">
                     <div className="border-[20px] border-transparent rounded-[20px] dark:bg-gray-900 bg-white shadow-lg xl:p-12 lg:p-12 md:p-10 sm:p-6 p-4 m-2">
                         <h1 className="font-bold text-5xl text-teal-500 mb-2 dark:text-teal-400 text-center">Register</h1>
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            {/* Name and Last Name */}
                             <div className="flex gap-4">
                                 {['name', 'lastName'].map((field) => (
                                     <div className="w-1/2 mb-5" key={field}>
@@ -211,7 +226,6 @@ const Register = () => {
                                 ))}
                             </div>
 
-                            {/* Number and Username */}
                             <div className="flex gap-4">
                                 <div className="w-1/2 mb-5">
                                     <label className="mb-2 dark:text-gray-400 text-lg block" htmlFor="number">
@@ -245,7 +259,6 @@ const Register = () => {
                                 </div>
                             </div>
 
-                            {/* Email */}
                             <div className="mb-5">
                                 <label className="mb-2 dark:text-gray-400 text-lg block" htmlFor="email">
                                     Email
@@ -258,122 +271,103 @@ const Register = () => {
                                     onChange={handleChange}
                                     className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
                                     required
-                                    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                                    title="Please enter a valid email (e.g. example@gmail.com)"
+                                    
                                 />
                                 {renderValidationStatus('email')}
                             </div>
 
-                            {/* Gender and Birthday */}
                             <div className="flex gap-4">
                                 <div className="w-1/2">
-                                    <label className="mb-2 dark:text-gray-400 text-lg block" htmlFor="gender">Gender</label>
+                                    <label className="mb-2 dark:text-gray-400 text-lg block" htmlFor="country">
+                                        Country
+                                    </label>
+                                    <select
+                                        id="country"
+                                        name="country"
+                                        value={formData.country}
+                                        onChange={handleCountryChange}
+                                        className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 border-gray-300 rounded-lg w-full"
+                                        required
+                                    >
+                                        <option value="">Select Country</option>
+                                        {countryList.map((country) => (
+                                            <option key={country.country} value={country.country}>
+                                                {country.country}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="w-1/2">
+                                    <label className="mb-2 dark:text-gray-400 text-lg block" htmlFor="city">
+                                        City
+                                    </label>
+                                    <select
+                                        id="city"
+                                        name="city"
+                                        value={formData.city}
+                                        onChange={handleCityChange}
+                                        className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 border-gray-300 rounded-lg w-full"
+                                        required
+                                    >
+                                        <option value="">Select City</option>
+                                        {cityList.map((city) => (
+                                            <option key={city} value={city}>
+                                                {city}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4">
+                                <div className="w-1/2">
+                                    <label className="mb-2 dark:text-gray-400 text-lg block" htmlFor="gender">
+                                        Gender
+                                    </label>
                                     <select
                                         id="gender"
                                         name="gender"
                                         value={formData.gender}
                                         onChange={handleChange}
-                                        className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
+                                        className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 border-gray-300 rounded-lg w-full"
                                         required
                                     >
                                         <option value="">Select Gender</option>
-                                        <option value="Male">Male</option>
                                         <option value="Female">Female</option>
+                                        <option value="Male">Male</option>
                                         <option value="Other">Other</option>
                                     </select>
                                 </div>
-                                <div className="w-1/2">
-                                    <label className="mb-2 dark:text-gray-400 text-lg block" htmlFor="birthday">Birthday</label>
-                                    <input
-                                        type="date"
-                                        id="birthday"
-                                        name="birthday"
-                                        value={formData.birthday}
-                                        onChange={handleChange}
-                                        className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
-                                        required
-                                    />
-                                </div>
+                  <div className="mb-5">
+  <label className="mb-2 dark:text-gray-400 text-lg block" htmlFor="birthday">
+    Birthday
+  </label>
+  <input
+    type="date"
+    id="birthday"
+    name="birthday"
+    min={minBirthday}
+    max={maxBirthday}
+    value={formData.birthday}
+    onChange={handleChange}
+    className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md placeholder:text-base border-gray-300 rounded-lg w-full"
+    required
+  />
+</div>
+
                             </div>
 
-                            {/* Country and City */}
-                            <div className="flex gap-4">
-                                <div className="w-1/2">
-                                    <label className="mb-2 dark:text-gray-400 text-lg block">Country</label>
-                                    <select
-                                        name="country"
-                                        value={formData.country}
-                                        onChange={handleCountryChange}
-                                        className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md border-gray-300 rounded-lg w-full"
-                                        required
-                                    >
-                                        <option value="">Select a country</option>
-                                        {countryList.map((country, index) => (
-                                            <option key={index} value={country.country}>{country.country}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="w-1/2">
-                                    <label className="mb-2 dark:text-gray-400 text-lg block">City</label>
-                                    <select
-                                        name="city"
-                                        value={formData.city}
-                                        onChange={handleCityChange}
-                                        className="border dark:bg-teal-700 dark:text-gray-300 dark:border-gray-700 p-4 shadow-md border-gray-300 rounded-lg w-full"
-                                        required
-                                        disabled={!formData.country}
-                                    >
-                                        <option value="">Select a city</option>
-                                        {cityList.map((city, index) => (
-                                            <option key={index} value={city}>{city}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            <button 
-                                className="bg-gradient-to-r from-teal-400 to-teal-700 shadow-lg mt-2 p-3 text-white text-lg rounded-lg w-full hover:scale-105 transition" 
+                            {message && <p className="text-red-500 text-sm">{message}</p>}
+                            <button
                                 type="submit"
-                                disabled={
-                                    validation.username.available === false || 
-                                    validation.email.available === false ||
-                                    validation.username.checking || 
-                                    validation.email.checking
-                                }
+                                className="w-full py-3 px-6 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition duration-300"
                             >
                                 Register
                             </button>
                         </form>
-                        {message && <p className="text-center mt-4 text-red-500">{message}</p>}
-                        <div className="flex flex-col mt-4 items-center text-sm">
-                            <h3>
-                                <span className="cursor-default dark:text-gray-300">Already have an account?</span>
-                                <a className="text-blue-400 ml-1" href="/login">Login</a>
-                            </h3>
-                        </div>
                     </div>
                 </div>
             </div>
-
-            {/* Success Modal */}
-            {isSubmitted && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center max-w-sm w-full">
-                        <h2 className="text-2xl font-bold mb-4 dark:text-white">Thank You!</h2>
-                        <p className="dark:text-gray-300">Your submission was successful.</p>
-                        <p className="dark:text-gray-300 mt-2">You will receive your password in your registered email.</p>
-                        <button
-                            onClick={() => {
-                                setIsSubmitted(false);
-                                window.location.href = '/login';
-                            }}
-                            className="mt-6 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-2 rounded-lg hover:opacity-90 transition"
-                        >
-                            OK
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

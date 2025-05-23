@@ -193,7 +193,7 @@ const Header = ({ cart = [], showCart, setShowCart }) => {
 
           {/* Login/Logout */}
           {userData ? (
-            <button 
+            <button   data-testid="logout-button"
               onClick={handleLogout} 
               className="p-2.5 rounded-full bg-rose-800/40 hover:bg-rose-700/50 text-rose-100 hover:text-white transition-all duration-300
                          focus:outline-none focus:ring-2 focus:ring-rose-300/50"

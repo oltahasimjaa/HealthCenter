@@ -26,7 +26,7 @@ const Login = () => {
     );
   }
   
-  if (isAuthenticated) return <Navigate to="/dashboard" />;
+  if (isAuthenticated) return <Navigate to="/" />;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,7 +38,7 @@ const Login = () => {
 
       setMessage('Login ishte i suksesshëm.');
       localStorage.setItem('isLoggedIn', true); 
-      navigate('/dashboard'); 
+      navigate('/'); 
 
     } catch (error) {
       console.error('Gabim gjatë login:', error);
@@ -68,7 +68,7 @@ const Login = () => {
         { withCredentials: true }
       );
       localStorage.setItem('isLoggedIn', true);
-      navigate('/dashboard');
+      navigate('/');
     } catch (error) {
       console.error('Google login error:', error);
       setMessage('Gabim gjatë Google login.');
