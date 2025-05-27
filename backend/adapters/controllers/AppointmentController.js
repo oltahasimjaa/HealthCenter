@@ -30,7 +30,13 @@ const getAllAppointments = async (req, res) => {
 
 const getAppointmentById = async (req, res) => {
   try {
-    const result = await UseCase.getById(req.params.id);
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid appointment ID format' });
+    }
+
+    const result = await UseCase.getById(id);
     if (result) {
       res.json(result);
     } else {
@@ -40,6 +46,7 @@ const getAppointmentById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -51,6 +58,21 @@ const transporter = nodemailer.createTransport({
 
 const createAppointment = async (req, res) => {
   try {
+    const { userId, specialistId, appointmentDate } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid userId format' });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(specialistId)) {
+      return res.status(400).json({ message: 'Invalid specialistId format' });
+    }
+
+    const date = new Date(appointmentDate);
+    if (isNaN(date.getTime()) || date < new Date()) {
+      return res.status(400).json({ message: 'appointmentDate must be a valid future date' });
+    }
+
     const newResource = await UseCase.create(req.body);
     res.status(201).json(newResource);
   } catch (error) {
@@ -58,8 +80,15 @@ const createAppointment = async (req, res) => {
   }
 };
 
+
 const updateAppointment = async (req, res) => {
   try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid appointment ID format' });
+    }
+
     const allowedUpdates = ['status', 'notes', 'appointmentDate'];
     const updates = Object.keys(req.body)
       .filter(key => allowedUpdates.includes(key))
@@ -68,35 +97,17 @@ const updateAppointment = async (req, res) => {
         return obj;
       }, {});
 
-    const updatedResource = await UseCase.update(req.params.id, updates);
-    
-    if (updatedResource) {
-      if (updates.status === 'confirmed') {
-        try {
-          const appointment = await UseCase.getById(req.params.id);
-          
-          if (appointment && appointment.userId && appointment.userId.email) {
-            const mailOptions = {
-              from: process.env.EMAIL_USER,
-              to: appointment.userId.email,
-              subject: 'Appointment Confirmation',
-              text: `Your appointment has been confirmed successfully!\n\n` +
-                    `Details:\n` +
-                    `- Specialist: ${appointment.specialistId.name} ${appointment.specialistId.lastName}\n` +
-                    `- Date: ${new Date(appointment.appointmentDate).toLocaleString()}\n` +
-                    `- Type: ${appointment.type}\n\n` +
-                    `Thank you for using our service!`
-            };
+    // Validate appointmentDate
+    if (
+      updates.appointmentDate &&
+      new Date(updates.appointmentDate) < new Date()
+    ) {
+      return res.status(400).json({ message: 'appointmentDate cannot be in the past' });
+    }
 
-            await transporter.sendMail(mailOptions);
-            console.log('Confirmation email sent to:', appointment.userId.email);
-          }
-        } catch (emailError) {
-          console.error('Error sending confirmation email:', emailError);
-          // Don't fail the request if email fails
-        }
-      }
-      
+    const updatedResource = await UseCase.update(id, updates);
+
+    if (updatedResource) {
       res.json(updatedResource);
     } else {
       res.status(404).json({ message: "Appointment not found" });
@@ -105,6 +116,7 @@ const updateAppointment = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 
 // const updateAppointment = async (req, res) => {
@@ -131,10 +143,16 @@ const updateAppointment = async (req, res) => {
 //   }
 // };
 
+const mongoose = require('mongoose'); // Ensure this is imported
 
 const deleteAppointment = async (req, res) => {
   try {
-    const deletedResource = await UseCase.delete(req.params.id);
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: 'Invalid appointment ID format' });
+    }
+
+    const deletedResource = await UseCase.delete(id);
     if (deletedResource) {
       res.json({ message: "Appointment deleted" });
     } else {
@@ -144,6 +162,7 @@ const deleteAppointment = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 module.exports = { 
   getAllAppointments, 
   getAppointmentById, 
