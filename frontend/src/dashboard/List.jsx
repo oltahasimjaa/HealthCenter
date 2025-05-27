@@ -75,16 +75,23 @@ const List = () => {
     setEditName('');
   };
 
-  const saveInlineEdit = async (id) => {
-    try {
-      await axios.put(`http://localhost:5001/api/list/${id}`, { name: editName });
-      setEditingId(null);
-      setEditName('');
-      fetchLists();
-    } catch (error) {
-      console.error('Error updating list:', error);
-    }
-  };
+ const saveInlineEdit = async (id) => {
+  try {
+    if (!user) return; // Make sure user is loaded
+
+    await axios.put(`http://localhost:5001/api/list/${id}`, {
+      name: editName,
+      createdById: user.id // Add this line
+    });
+
+    setEditingId(null);
+    setEditName('');
+    fetchLists();
+  } catch (error) {
+    console.error('Error updating list:', error);
+  }
+};
+
   const handleDelete = async (id) => {
     await axios.delete(`http://localhost:5001/api/list/${id}`);
     fetchLists();

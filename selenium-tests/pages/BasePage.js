@@ -35,6 +35,40 @@ class BasePage {
     await element.clear();
     await element.sendKeys(text);
   }
+
+async selectDropdownByText(selectBy, visibleText) {
+  const select = await this.find(selectBy);
+  const options = await select.findElements(By.tagName('option'));
+
+  for (const option of options) {
+    const text = await option.getText();
+    console.log('Dropdown option:', text);  // Add this to debug
+    if (text.trim() === visibleText) {
+      await option.click();
+      return;
+    }
+  }
+
+  throw new Error(`Option "${visibleText}" not found in dropdown`);
+}
+async selectFirstDropdownOption(selectBy) {
+  const select = await this.find(selectBy);
+  const options = await select.findElements(By.tagName('option'));
+  if (options.length > 1) {  // skip placeholder
+    await options[1].click();  // select the first non-placeholder option
+  } else if (options.length > 0) {
+    await options[0].click();  // fallback to first
+  } else {
+    throw new Error("No options available in dropdown");
+  }
+}
+
+
+  // Add this:
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
 // Select dropdown by visible text
 async selectDropdown(locator, value) {
     if (!value) return; // Skip if empty value
@@ -59,7 +93,13 @@ async selectDropdown(locator, value) {
         }
     }
 }
+async find(locator) {
+  return await this.driver.findElement(locator);
+}
 
+async findAll(locator) {
+  return await this.driver.findElements(locator);
+}
 // Get visible text from an element
 async getElementText(locator) {
   const element = await this.findElement(locator);
