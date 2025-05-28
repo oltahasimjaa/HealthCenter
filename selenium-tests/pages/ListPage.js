@@ -16,17 +16,30 @@ class ListPage extends BasePage {
 
 async createListItem(name, programTitle) {
   // Clear and type the name
-  const nameField = await this.find(this.nameInput);
-  await nameField.clear();
-  await nameField.sendKeys(name);
-  
+const nameField = await this.driver.wait(
+  until.elementLocated(this.nameInput),
+  5000,
+  'Name input not found'
+);
+await this.driver.wait(
+  until.elementIsVisible(nameField),
+  5000,
+  'Name input not visible'
+);
+
+await nameField.clear();
+await nameField.sendKeys(name);
   // Select program
-  await this.selectFirstDropdownOption(this.programSelect);
-  
-  // Submit and wait properly
-  await this.click(this.submitButton);
-  
-  // Wait for the new item to appear
+console.log("Name entered:", name);
+
+await this.selectFirstDropdownOption(this.programSelect);
+console.log("Program selected");
+
+await this.click(this.submitButton);
+console.log("Clicked submit");
+
+await this.waitForListItem(name);
+console.log("List item appeared");
   await this.waitForListItem(name);
 }
 
