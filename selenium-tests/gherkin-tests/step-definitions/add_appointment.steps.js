@@ -10,7 +10,7 @@ When('I will create an appointment', async function () {
   const payload = {
     userId: 1,
     specialistId: "681a3d888f4003eca0da9187",
-    appointmentDate: "2025-05-29T15:00:00.000Z",
+    appointmentDate: "2025-06-29T15:00:00.000Z",
     type: "therapy",
     notes: "",
     status: "pending"
