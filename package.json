@@ -5,7 +5,8 @@
     "test": "mocha selenium-tests/tests/*.test.js --timeout 30000",
     "test:gherkin": "cucumber-js selenium-tests/gherkin-tests/features --require selenium-tests/gherkin-tests/step-definitions --require selenium-tests/gherkin-tests/support",
     "test:login": "mocha selenium-tests/tests/login.test.js --timeout 30000",
-    "test:register": "mocha selenium-tests/tests/register.test.js --timeout 30000"
+    "test:register": "mocha selenium-tests/tests/register.test.js --timeout 30000",
+    "test:program": "mocha selenium-tests/tests/Program.test.js --timeout 30000"
   },
   "dependencies": {
     "axios": "^1.9.0",
