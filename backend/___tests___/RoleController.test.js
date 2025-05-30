@@ -68,14 +68,33 @@ describe('Role API Tests', () => {
     });
 
     it('should return 400 when missing required fields', async () => {
-  const response = await request(app)
-    .post('/api/role')
-    .send({});
+      const response = await request(app)
+        .post('/api/role')
+        .send({});
 
-  expect(response.status).toBe(400);
-  expect(response.body).toEqual({ message: "Missing required field: name" });
-});
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ message: "Missing required field: name" });
+    });
 
+    // NEW TEST CASES ADDED BELOW (original code remains untouched above)
+    it('should create role with empty permissions array', async () => {
+      const mockRole = {
+        id: 2,
+        name: 'Guest',
+        permissions: [],
+        createdById: 1
+      };
+      RoleRepository.create.mockResolvedValue(mockRole);
+      
+      const res = await request(app)
+        .post('/api/role')
+        .send({name: "Guest", permissions: []});
+      
+      expect(res.status).toBe(201);
+      expect(res.body.permissions).toEqual([]);
+    });
+
+  
   });
 
   describe('GET /api/role', () => {
@@ -90,6 +109,14 @@ describe('Role API Tests', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual(mockRoles);
+    });
+
+    // NEW TEST CASE ADDED BELOW
+    it('should return empty array when no roles exist', async () => {
+      RoleRepository.findAll.mockResolvedValue([]);
+      const res = await request(app).get('/api/role');
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual([]);
     });
   });
 
@@ -111,6 +138,7 @@ describe('Role API Tests', () => {
 
       expect(response.status).toBe(404);
     });
+
   });
 
   describe('PUT /api/role/:id', () => {
@@ -135,18 +163,32 @@ describe('Role API Tests', () => {
 
       expect(response.status).toBe(404);
     });
+
+    // NEW TEST CASES ADDED BELOW
+    it('should update only permissions when provided', async () => {
+      const updatedRole = { id: 1, name: 'Admin', permissions: ['new'] };
+      RoleRepository.update.mockResolvedValue(updatedRole);
+
+      const res = await request(app)
+        .put('/api/role/1')
+        .send({ permissions: ['new'] });
+
+      expect(res.status).toBe(200);
+      expect(res.body.permissions).toEqual(['new']);
+    });
+
+  
   });
 
   describe('DELETE /api/role/:id', () => {
-   it('should delete an existing role', async () => {
-  RoleRepository.delete.mockResolvedValue(true);
+    it('should delete an existing role', async () => {
+      RoleRepository.delete.mockResolvedValue(true);
 
-  const response = await request(app).delete('/api/role/1');
+      const response = await request(app).delete('/api/role/1');
 
-  expect(response.status).toBe(200);
-  expect(response.body).toEqual({ message: "Role deleted" });
-});
-
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ message: "Role deleted" });
+    });
 
     it('should return 404 when deleting non-existent role', async () => {
       RoleRepository.delete.mockResolvedValue(false);
@@ -155,5 +197,6 @@ describe('Role API Tests', () => {
 
       expect(response.status).toBe(404);
     });
+
   });
 });
